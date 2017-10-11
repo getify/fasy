@@ -1,12 +1,12 @@
 # fasy
 
-<!--[![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
+[![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 [![Dependencies](https://david-dm.org/getify/fasy.svg)](https://david-dm.org/getify/fasy)
 [![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy)
-[![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)-->
+[![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-**fasy** is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc) that are capable of handling `async function` and `function*` (generator) functions.
+**fasy** is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc) that are capable of handling `async function` functions and `function*` generators. **fasy** supports both concurrent and serial iterations.
 
 ## Environment Support
 
@@ -14,7 +14,179 @@ This library uses ES2017 (and ES6) features. If you need to support environments
 
 ## At A Glance
 
-// TODO
+Here's a quick example:
+
+```js
+var users = [ "bzmau", "getify", "frankz" ];
+
+FA.concurrent.map( users, getOrders )
+.then( userOrders => console.log( userOrders ) );
+```
+
+This would work fine with any implementation of `map(..)` if `getOrders(..)` was synchronous. But `concurrent.map(..)` is different in that it handles/expects asynchronously completing functions, like `async function` functions or `function*` generators.
+
+`concurrent.map(..)` will run each call to `getOrders(..)` concurrently (aka "in parallel"), and once all are complete, fulfill its returned promise with the final result of the mapping.
+
+But what if you wanted to run each `getOrders(..)` call one at a time, in succession? Use `FA.serial.map(..)`:
+
+```js
+var users = [ "bzmau", "getify", "frankz" ];
+
+FA.serial.map( users, getOrders )
+.then( userOrders => console.log( userOrders ) );
+```
+
+As with `concurrent.map(..)`, once all mappings are complete, the returned promise is fulfilled with the final result of the mapping.
+
+**fasy** handles `function*` generators via a [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner) that's built-in, similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
+
+```js
+var users = [ "bzmau", "getify", "frankz" ];
+
+FA.serial.map( users, function *getOrders(username){
+	var user = yield lookupUser( username );
+	return yield lookupOrders( user.id );
+} )
+.then( userOrders => console.log( userOrders ) );
+```
+
+## Overview
+
+Functional helpers like `map(..)` / `filter(..)` / `reduce(..)` are quite handy for iterating through a list of operations:
+
+```js
+[1,2,3,4,5].filter(v => v % 2 == 0);
+// [2,4]
+```
+
+The sync-async pattern of `async function` functions offers much more readable asynchronous flow control code:
+
+```js
+async function getOrders(username) {
+	var user = await lookupUser( username );
+	return await lookupOrders( user.id );
+}
+
+getOrders( "getify" )
+.then( orders => console.log( orders ) );
+```
+
+Alternately, you could use a `function*` generator along with a [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner) (`run(..)` in the below snippet):
+
+```js
+run( function *getOrders(username){
+	var user = yield lookupUser( username );
+	return yield lookupOrders( user.id );
+}, "getify" )
+.then( orders => console.log( orders ) );
+```
+
+The problem is, mixing FP-style iteration like `map(..)` with `async function` functions / `function*` generators doesn't quite work:
+
+```js
+async function getAllOrders() {
+	var users = [ "bzmau", "getify", "frankz" ];
+
+	var userOrders = users.map( function getOrders(username){
+		// `await` won't work here inside this inner function
+		var user = await lookupUser( username );
+		return await lookupOrders( user.id );
+	} );
+
+	// everything is messed up now, since `map(..)` works synchronously
+	console.log( userOrders );
+}
+```
+
+The `await` isn't valid inside the inner function `getOrders(..)` since that's a normal function, not an `async function` function. Also, `map(..)` here is the standard array method that operates synchronously, so it doesn't wait for all the lookups to finish.
+
+If it's OK to run the `getOrders(..)` calls concurrently -- in this particular example, it quite possibly is -- then you could use `Promise.all(..)` along with an inner `async function` function:
+
+```js
+async function getAllOrders() {
+	var users = [ "bzmau", "getify", "frankz" ];
+
+	var userOrders = await Promise.all( users.map( async function getOrders(username){
+		var user = await lookupUser( username );
+		return await lookupOrders( user.id );
+	} ) );
+
+	// this works
+	console.log( userOrders );
+}
+```
+
+Unfortunately, aside from being more verbose, this "fix" is fairly limited. It really only works for `map(..)` and not for something like `filter(..)`. Also, since it assumes concurrency, there's no way to do the iterations serially (for any of various reasons).
+
+With **fasy**, you can do either concurrent or serial iterations of asynchronous operations:
+
+```js
+// concurrent iteration:
+async function getAllOrders() {
+	var users = [ "bzmau", "getify", "frankz" ];
+
+	var userOrders = await FA.concurrent.map( users, async function getOrders(username){
+		var user = await lookupUser( username );
+		return await lookupOrders( user.id );
+	} );
+
+	console.log( userOrders );
+}
+
+// serial iteration:
+async function getAllOrders() {
+	var users = [ "bzmau", "getify", "frankz" ];
+
+	var userOrders = await FA.serial.map( users, async function getOrders(username){
+		var user = await lookupUser( username );
+		return await lookupOrders( user.id );
+	} );
+
+	console.log( userOrders );
+}
+```
+
+Let's look at a `filter(..)` example:
+
+```js
+async function getActiveUsers() {
+	var users = [ "bzmau", "getify", "frankz" ];
+
+	return await FA.concurrent.filter( users, async function userIsActive(username){
+		var user = await lookupUser( username );
+		return user.isActive;
+	} );
+}
+```
+
+The equivalent of this would be much more verbose/awkward than just a simple `Promise.all(..)` "fix" as above. And of course, you can also use `serial.filter(..)` to process the operations serially if necessary.
+
+Some operations are naturally serial, like `reduce(..)`, and thus wouldn't make any sense as concurrent operations. As such, `concurrent.reduce(..)` / `concurrent.reduceRight(..)` delegate respectively to `serial.reduce(..)` / `serial.reduceRight(..)`.
+
+For example, consider modeling an asynchronous function composition as a serial `reduce(..)`:
+
+```js
+// `prop(..)` is a standard FP helper for extracting a
+// property from an object
+var prop = p => o => o[p];
+
+// ***************************
+
+async function getOrders(username) {
+	return await FA.serial.reduce(
+		[ lookupUser, prop( "id" ), lookupOrders ],
+		username,
+		async (ret,fn) => fn( ret )
+	);
+}
+
+getOrders( "getify" )
+.then( orders => console.log( orders ) );
+```
+
+**Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values.
+
+As you can see, these composed steps absolutely need to be executed serially; `serial.reduce(..)` is quite helpful in that task.
 
 ## API
 
@@ -22,8 +194,8 @@ This library uses ES2017 (and ES6) features. If you need to support environments
 
 ## Builds
 
-<!--[![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
-[![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)-->
+[![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
+[![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 
 The distribution library file (`dist/fasy.js`) comes pre-built with the npm package distribution, so you shouldn't need to rebuild it under normal circumstances.
 
@@ -81,7 +253,7 @@ node scripts/node-tests.js
 
 ### Test Coverage
 
-<!--[![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)-->
+[![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
 If you have [Istanbul](https://github.com/gotwarlost/istanbul) already installed on your system (requires v1.0+), you can use it to check the test coverage:
 
