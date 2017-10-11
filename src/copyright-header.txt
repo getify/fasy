@@ -1,0 +1,5 @@
+/*! fasy.js
+	v${version} (c) ${year} Kyle Simpson
+	MIT License: http://getify.mit-license.org
+*/
+
