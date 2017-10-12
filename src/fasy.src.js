@@ -6,17 +6,17 @@
 	"use strict";
 
 	var concurrent = {
-		async forEach(arr,fn) {
-			await Promise.all(arr.map(run(fn)));
+		async forEach(eachFn,arr) {
+			await Promise.all(arr.map(run(eachFn)));
 		},
-		async map(arr,fn) {
-			return Promise.all(arr.map(run(fn)));
+		async map(mapperFn,arr) {
+			return Promise.all(arr.map(run(mapperFn)));
 		},
-		async filter(arr,fn) {
-			fn = run(fn);
+		async filter(predicateFn,arr) {
+			predicateFn = run(predicateFn);
 			return (
 				await Promise.all(arr.map(async function mapper(v,idx,arr) {
-					return [v,await fn(v,idx,arr)];
+					return [v,await predicateFn(v,idx,arr)];
 				}))
 			)
 			.filter(function filterer([v,keep]) { return !!keep; })
@@ -31,43 +31,43 @@
 	};
 
 	var serial = {
-		async forEach(arr,fn) {
-			fn = run(fn);
+		async forEach(eachFn,arr) {
+			eachFn = run(eachFn);
 			for (let [idx,v] of arr.entries()) {
-				await fn(v,idx,arr);
+				await eachFn(v,idx,arr);
 			}
 		},
-		async map(arr,fn) {
-			fn = run(fn);
+		async map(mapperFn,arr) {
+			mapperFn = run(mapperFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
-				ret.push(await fn(v,idx,arr));
+				ret.push(await mapperFn(v,idx,arr));
 			}
 			return ret;
 		},
-		async filter(arr,fn) {
-			fn = run(fn);
+		async filter(predicateFn,arr) {
+			predicateFn = run(predicateFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
-				if (await fn(v,idx,arr)) {
+				if (await predicateFn(v,idx,arr)) {
 					ret.push(v);
 				}
 			}
 			return ret;
 		},
-		async reduce(arr,initial,fn) {
-			fn = run(fn);
+		async reduce(reducerFn,initial,arr) {
+			reducerFn = run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of arr.entries()) {
-				ret = await fn(ret,v,idx,arr);
+				ret = await reducerFn(ret,v,idx,arr);
 			}
 			return ret;
 		},
-		async reduceRight(arr,initial,fn) {
-			fn = run(fn);
+		async reduceRight(reducerFn,initial,arr) {
+			reducerFn = run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of [...arr.entries()].reverse()) {
-				ret = await fn(ret,v,idx,arr);
+				ret = await reducerFn(ret,v,idx,arr);
 			}
 			return ret;
 		},

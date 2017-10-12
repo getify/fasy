@@ -19,7 +19,7 @@ Here's a quick example:
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
 
-FA.concurrent.map( users, getOrders )
+FA.concurrent.map( getOrders, users )
 .then( userOrders => console.log( userOrders ) );
 ```
 
@@ -32,21 +32,24 @@ But what if you wanted to run each `getOrders(..)` call one at a time, in succes
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
 
-FA.serial.map( users, getOrders )
+FA.serial.map( getOrders, users )
 .then( userOrders => console.log( userOrders ) );
 ```
 
 As with `concurrent.map(..)`, once all mappings are complete, the returned promise is fulfilled with the final result of the mapping.
 
-**fasy** handles `function*` generators via a [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner) that's built-in, similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
+**fasy** handles `function*` generators via its own [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner), similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
 
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
 
-FA.serial.map( users, function *getOrders(username){
-    var user = yield lookupUser( username );
-    return lookupOrders( user.id );
-} )
+FA.serial.map(
+    function *getOrders(username){
+       var user = yield lookupUser( username );
+        return lookupOrders( user.id );
+    },
+    users
+)
 .then( userOrders => console.log( userOrders ) );
 ```
 
@@ -59,7 +62,7 @@ Functional helpers like `map(..)` / `filter(..)` / `reduce(..)` are quite handy 
 // [2,4]
 ```
 
-The sync-async pattern of `async function` functions offers much more readable asynchronous flow control code:
+The [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises) of `async function` functions offers much more readable asynchronous flow control code:
 
 ```js
 async function getOrders(username) {
@@ -71,7 +74,7 @@ getOrders( "getify" )
 .then( orders => console.log( orders ) );
 ```
 
-Alternately, you could use a `function*` generator along with a [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner) (`run(..)` in the below snippet):
+Alternately, you could use a `function*` generator along with a [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner) (named `run(..)` in the below snippet):
 
 ```js
 run( function *getOrders(username){
@@ -84,6 +87,8 @@ run( function *getOrders(username){
 The problem is, mixing FP-style iteration like `map(..)` with `async function` functions / `function*` generators doesn't quite work:
 
 ```js
+// BROKEN CODE -- DON'T COPY!!
+
 async function getAllOrders() {
     var users = [ "bzmau", "getify", "frankz" ];
 
@@ -125,10 +130,13 @@ With **fasy**, you can do either concurrent or serial iterations of asynchronous
 async function getAllOrders() {
     var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = await FA.concurrent.map( users, async function getOrders(username){
-        var user = await lookupUser( username );
-        return lookupOrders( user.id );
-    } );
+    var userOrders = await FA.concurrent.map(
+        async function getOrders(username){
+            var user = await lookupUser( username );
+            return lookupOrders( user.id );
+        },
+        users
+    );
 
     console.log( userOrders );
 }
@@ -137,10 +145,13 @@ async function getAllOrders() {
 async function getAllOrders() {
     var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = await FA.serial.map( users, async function getOrders(username){
-        var user = await lookupUser( username );
-        return lookupOrders( user.id );
-    } );
+    var userOrders = await FA.serial.map(
+        async function getOrders(username){
+            var user = await lookupUser( username );
+            return lookupOrders( user.id );
+        },
+        users
+    );
 
     console.log( userOrders );
 }
@@ -152,10 +163,13 @@ Let's look at a `filter(..)` example:
 async function getActiveUsers() {
     var users = [ "bzmau", "getify", "frankz" ];
 
-    return FA.concurrent.filter( users, async function userIsActive(username){
-        var user = await lookupUser( username );
-        return user.isActive;
-    } );
+    return FA.concurrent.filter(
+        async function userIsActive(username){
+            var user = await lookupUser( username );
+            return user.isActive;
+        },
+        users
+    );
 }
 ```
 
@@ -163,21 +177,21 @@ The equivalent of this would be much more verbose/awkward than just a simple `Pr
 
 ### Serial Asynchrony
 
-Some operations are naturally serial. For example, `reduce(..)` wouldn't make any sense processing as concurrent operations. As such, `concurrent.reduce(..)` / `concurrent.reduceRight(..)` delegate respectively to `serial.reduce(..)` / `serial.reduceRight(..)`.
+Some operations are naturally serial. For example, `reduce(..)` wouldn't make any sense processing as concurrent operations; it naturally runs left-to-right through the list. As such, `concurrent.reduce(..)` / `concurrent.reduceRight(..)` delegate respectively to `serial.reduce(..)` / `serial.reduceRight(..)`.
 
 For example, consider modeling an asynchronous function composition as a serial `reduce(..)`:
 
 ```js
-// `prop(..)` is a standard FP helper for extracting a property from an object
+// `prop(..)` is a standard curried FP helper for extracting a property from an object
 var prop = p => o => o[p];
 
 // ***************************
 
 async function getOrders(username) {
     return FA.serial.reduce(
-        [ lookupUser, prop( "id" ), lookupOrders ],
+        async (ret,fn) => fn( ret ),
         username,
-        async (ret,fn) => fn( ret )
+        [ lookupUser, prop( "id" ), lookupOrders ]
     );
 }
 
@@ -192,9 +206,9 @@ Instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `functi
 ```js
 async function getOrders(username) {
     return FA.serial.reduce(
-        [ lookupUser, prop( "id" ), lookupOrders ],
+        function *composer(ret,fn) { return fn( ret ); },
         username,
-        function*(ret,fn) { return fn( ret ); }
+        [ lookupUser, prop( "id" ), lookupOrders ]
     );
 }
 
@@ -211,9 +225,9 @@ In this specific running example, there's no inner asynchronous flow control nec
 ```js
 async function getOrders(username) {
     return FA.serial.reduce(
-        [ lookupUser, prop( "id" ), lookupOrders ],
+        (ret,fn) => fn( ret ),
         username,
-        function(ret,fn) { return fn( ret ); }
+        [ lookupUser, prop( "id" ), lookupOrders ]
     );
 }
 
@@ -223,11 +237,11 @@ getOrders( "getify" )
 
 There's an important principle illustrated here that many developers don't realize.
 
-A regular function that returns a promise has the same external behavioral interface as an `async function` function. From the external perspective, when you call a function, and get back a promise, it doesn't matter if the function manually created and returned that promise, or whether that promise came automatically from the `async function` invocation. In both cases, you get back a promise, and you wait on it before moving on. The *interface* is the same.
+A regular function that returns a promise has the same external behavioral interface as an `async function` function. From the external perspective, when you call a function and get back a promise, it doesn't matter if the function manually created and returned that promise, or whether that promise came automatically from the `async function` invocation. In both cases, you get back a promise, and you wait on it before moving on. The *interface* is the same.
 
-In the first step of this example's reduction, the `return fn(ret)` call is effectively `return lookupUser(username)`, which is returning a promise. What's different between `serial.reduce(..)` and a standard synchronous implementation of `reduce(..)` as provided by various other FP libraries, is that if `serial.reduce(..)` receives back a promise from a reducer call, it pauses to wait for that promise to resolve.
+In the first step of this example's reduction, the `fn(ret)` call is effectively `lookupUser(username)`, which is returning a promise. What's different between `serial.reduce(..)` and a standard synchronous implementation of `reduce(..)` as provided by various other FP libraries, is that if `serial.reduce(..)` receives back a promise from a reducer call, it pauses to wait for that promise to resolve.
 
-But what about the second step of the reduction, where `return fn(ret)` is effectively `return prop("id")(user)`? The return from *that* call is an immediate value (the user's ID), not a promise (future value).
+But what about the second step of the reduction, where `fn(ret)` is effectively `prop("id")(user)`? The return from *that* call is an immediate value (the user's ID), not a promise (future value).
 
 **fasy** uses promises internally to normalize both immediate and future values, so the iteration behavior is consistent regardless.
 
