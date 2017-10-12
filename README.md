@@ -247,8 +247,8 @@ But what about the second step of the reduction, where `fn(ret)` is effectively 
 
 ## API
 
-* See [Concurrent API](concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
-* See [Serial API](serial-API.md) for documenation on the methods in the `FA.serial.*` namespace.
+* See [Concurrent API](docs/concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
+* See [Serial API](docs/serial-API.md) for documenation on the methods in the `FA.serial.*` namespace.
 
 ## Builds
 
