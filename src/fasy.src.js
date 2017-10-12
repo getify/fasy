@@ -87,7 +87,7 @@
 		return async function getArgs(...args) {
 			var ret = fn(...args);
 
-			if (ret && typeof ret.next == "function") {
+			if (ret && typeof ret.next == "function" && typeof ret[Symbol.iterator] == "function") {
 				// return a promise for the generator completing
 				return Promise.resolve()
 					.then(function handleNext(value){
