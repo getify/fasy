@@ -44,8 +44,8 @@ As with `concurrent.map(..)`, once all mappings are complete, the returned promi
 var users = [ "bzmau", "getify", "frankz" ];
 
 FA.serial.map( users, function *getOrders(username){
-	var user = yield lookupUser( username );
-	return lookupOrders( user.id );
+    var user = yield lookupUser( username );
+    return lookupOrders( user.id );
 } )
 .then( userOrders => console.log( userOrders ) );
 ```
@@ -63,8 +63,8 @@ The sync-async pattern of `async function` functions offers much more readable a
 
 ```js
 async function getOrders(username) {
-	var user = await lookupUser( username );
-	return lookupOrders( user.id );
+    var user = await lookupUser( username );
+    return lookupOrders( user.id );
 }
 
 getOrders( "getify" )
@@ -75,8 +75,8 @@ Alternately, you could use a `function*` generator along with a [generator-runne
 
 ```js
 run( function *getOrders(username){
-	var user = yield lookupUser( username );
-	return lookupOrders( user.id );
+    var user = yield lookupUser( username );
+    return lookupOrders( user.id );
 }, "getify" )
 .then( orders => console.log( orders ) );
 ```
@@ -85,16 +85,16 @@ The problem is, mixing FP-style iteration like `map(..)` with `async function` f
 
 ```js
 async function getAllOrders() {
-	var users = [ "bzmau", "getify", "frankz" ];
+    var users = [ "bzmau", "getify", "frankz" ];
 
-	var userOrders = users.map( function getOrders(username){
-		// `await` won't work here inside this inner function
-		var user = await lookupUser( username );
-		return lookupOrders( user.id );
-	} );
+    var userOrders = users.map( function getOrders(username){
+        // `await` won't work here inside this inner function
+        var user = await lookupUser( username );
+        return lookupOrders( user.id );
+    } );
 
-	// everything is messed up now, since `map(..)` works synchronously
-	console.log( userOrders );
+    // everything is messed up now, since `map(..)` works synchronously
+    console.log( userOrders );
 }
 ```
 
@@ -104,15 +104,15 @@ If it's OK to run the `getOrders(..)` calls concurrently -- in this particular e
 
 ```js
 async function getAllOrders() {
-	var users = [ "bzmau", "getify", "frankz" ];
+    var users = [ "bzmau", "getify", "frankz" ];
 
-	var userOrders = await Promise.all( users.map( async function getOrders(username){
-		var user = await lookupUser( username );
-		return lookupOrders( user.id );
-	} ) );
+    var userOrders = await Promise.all( users.map( async function getOrders(username){
+        var user = await lookupUser( username );
+        return lookupOrders( user.id );
+    } ) );
 
-	// this works
-	console.log( userOrders );
+    // this works
+    console.log( userOrders );
 }
 ```
 
@@ -123,26 +123,26 @@ With **fasy**, you can do either concurrent or serial iterations of asynchronous
 ```js
 // concurrent iteration:
 async function getAllOrders() {
-	var users = [ "bzmau", "getify", "frankz" ];
+    var users = [ "bzmau", "getify", "frankz" ];
 
-	var userOrders = await FA.concurrent.map( users, async function getOrders(username){
-		var user = await lookupUser( username );
-		return lookupOrders( user.id );
-	} );
+    var userOrders = await FA.concurrent.map( users, async function getOrders(username){
+        var user = await lookupUser( username );
+        return lookupOrders( user.id );
+    } );
 
-	console.log( userOrders );
+    console.log( userOrders );
 }
 
 // serial iteration:
 async function getAllOrders() {
-	var users = [ "bzmau", "getify", "frankz" ];
+    var users = [ "bzmau", "getify", "frankz" ];
 
-	var userOrders = await FA.serial.map( users, async function getOrders(username){
-		var user = await lookupUser( username );
-		return lookupOrders( user.id );
-	} );
+    var userOrders = await FA.serial.map( users, async function getOrders(username){
+        var user = await lookupUser( username );
+        return lookupOrders( user.id );
+    } );
 
-	console.log( userOrders );
+    console.log( userOrders );
 }
 ```
 
@@ -150,12 +150,12 @@ Let's look at a `filter(..)` example:
 
 ```js
 async function getActiveUsers() {
-	var users = [ "bzmau", "getify", "frankz" ];
+    var users = [ "bzmau", "getify", "frankz" ];
 
-	return FA.concurrent.filter( users, async function userIsActive(username){
-		var user = await lookupUser( username );
-		return user.isActive;
-	} );
+    return FA.concurrent.filter( users, async function userIsActive(username){
+        var user = await lookupUser( username );
+        return user.isActive;
+    } );
 }
 ```
 
@@ -174,37 +174,35 @@ var prop = p => o => o[p];
 // ***************************
 
 async function getOrders(username) {
-	return FA.serial.reduce(
-		[ lookupUser, prop( "id" ), lookupOrders ],
-		username,
-		async (ret,fn) => fn( ret )
-	);
+    return FA.serial.reduce(
+        [ lookupUser, prop( "id" ), lookupOrders ],
+        username,
+        async (ret,fn) => fn( ret )
+    );
 }
 
 getOrders( "getify" )
 .then( orders => console.log( orders ) );
 ```
 
-**Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values.
+**Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values. [More on that](#syncasync-normalization) below.
 
-As you can see, these composed steps need to be executed serially; `serial.reduce(..)` is quite helpful in that task.
-
-And instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
+Instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
 
 ```js
 async function getOrders(username) {
-	return FA.serial.reduce(
-		[ lookupUser, prop( "id" ), lookupOrders ],
-		username,
-		function*(ret,fn) { return fn( ret ); }
-	);
+    return FA.serial.reduce(
+        [ lookupUser, prop( "id" ), lookupOrders ],
+        username,
+        function*(ret,fn) { return fn( ret ); }
+    );
 }
 
 getOrders( "getify" )
 .then( orders => console.log( orders ) );
 ```
 
-Specifying the reducer as an `async function` function or a `function*` generator gives you the flexibility to do inner `await` / `yield` flow control if necessary.
+Specifying the reducer as an `async function` function or a `function*` generator gives you the flexibility to do inner `await` / `yield` flow control as necessary.
 
 ### Sync/Async Normalization
 
@@ -212,11 +210,11 @@ In this specific running example, there's no inner asynchronous flow control nec
 
 ```js
 async function getOrders(username) {
-	return FA.serial.reduce(
-		[ lookupUser, prop( "id" ), lookupOrders ],
-		username,
-		function(ret,fn) { return fn( ret ); }
-	);
+    return FA.serial.reduce(
+        [ lookupUser, prop( "id" ), lookupOrders ],
+        username,
+        function(ret,fn) { return fn( ret ); }
+    );
 }
 
 getOrders( "getify" )
@@ -225,17 +223,18 @@ getOrders( "getify" )
 
 There's an important principle illustrated here that many developers don't realize.
 
-A regular function that returns a promise has the same behavioral interface as an `async function` function. From the outside perspective, when you call a function, and get back a promise, it doesn't matter if the function manually created and returned that promise, or whether that promise came automatically from the `async function` invocation. In both cases, you get back a promise, and you wait on it before moving on. The *interface* is the same.
+A regular function that returns a promise has the same external behavioral interface as an `async function` function. From the external perspective, when you call a function, and get back a promise, it doesn't matter if the function manually created and returned that promise, or whether that promise came automatically from the `async function` invocation. In both cases, you get back a promise, and you wait on it before moving on. The *interface* is the same.
 
-In the first step of this reduction, the `return fn(ret)` call is effectively `return lookupUser(username)`, which is returning a promise. What's different between `serial.reduce(..)` and a standard synchronous implementation of `reduce(..)` as provided by various other FP libraries, is that if `serial.reduce(..)` receives back a promise from a reducer call, it pauses to wait for that promise to resolve.
+In the first step of this example's reduction, the `return fn(ret)` call is effectively `return lookupUser(username)`, which is returning a promise. What's different between `serial.reduce(..)` and a standard synchronous implementation of `reduce(..)` as provided by various other FP libraries, is that if `serial.reduce(..)` receives back a promise from a reducer call, it pauses to wait for that promise to resolve.
 
-But what about the second step of the reduction, where `return fn(ret)` is effectively `return prop("id")(user)`? The return from *that* call is a simple immediate value (the user's ID), not a promise.
+But what about the second step of the reduction, where `return fn(ret)` is effectively `return prop("id")(user)`? The return from *that* call is an immediate value (the user's ID), not a promise (future value).
 
 **fasy** uses promises internally to normalize both immediate and future values, so the iteration behavior is consistent regardless.
 
 ## API
 
-// TODO
+* See [Concurrent API](concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
+* See [Serial API](serial-API.md) for documenation on the methods in the `FA.serial.*` namespace.
 
 ## Builds
 
@@ -250,19 +249,19 @@ However, if you download this repository via Git:
 
 2. To install the build and test dependencies, run `npm install` from the project root directory.
 
-3. Because of how npm lifecycle events (currently: npm v4) work, `npm install` will have the side effect of automatically running the build and test utilities for you. So, no further action should be needed on your part. Starting with npm v5, the build utility will still be run automatically on `npm install`, but the test utility will not.
+    - **Note:** This `npm install` has the effect of running the build for you, so no further action should be needed on your part.
 
-To run the build utility with npm:
+4. To manually run the build utility with npm:
 
-```
-npm run build
-```
+    ```
+    npm run build
+    ```
 
-To run the build utility directly without npm:
+5. To run the build utility directly without npm:
 
-```
-node scripts/build-core.js
-```
+    ```
+    node scripts/build-core.js
+    ```
 
 ## Tests
 
@@ -272,29 +271,29 @@ A comprehensive test suite is included in this repository, as well as the npm pa
 
 2. The included Node.js test utility (`scripts/node-tests.js`) runs the test suite. **This test utility expects Node.js version 6+.**
 
-3. Ensure the Node.js test utility dependencies are installed by running `npm install` from the project root directory.
+3. Ensure the test dependencies are installed by running `npm install` from the project root directory.
 
-4. Because of how npm lifecycle events (currently: npm v4) work, `npm install` will have the side effect of automatically running the build and test utilities for you. So, no further action should be needed on your part. Starting with npm v5, the build utility will still be run automatically on `npm install`, but the test utility will not.
+    - **Note:** Starting with npm v5, the test utility is **not** run automatically during this `npm install`. With npm v4, the test utility automatically runs at this point.
 
-To run the test utility with npm:
+4. To run the test utility with npm:
 
-```
-npm test
-```
+    ```
+    npm test
+    ```
 
-Other npm test scripts:
+    Other npm test scripts:
 
-* `npm run test:dist` will run the test suite against `dist/fasy.js`.
+    * `npm run test:dist` will run the test suite against `dist/fasy.js` instead of the default of `src/fasy.src.js`.
 
-* `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references `dist/fasy.js` for inclusion.
+    * `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references `dist/fasy.js` for inclusion.
 
-* `npm run test:all` will run all three modes of the test suite. This is what's automatically run when you first `npm install` the build and test dependencies.
+    * `npm run test:all` will run all three modes of the test suite.
 
-To run the test utility directly without npm:
+5. To run the test utility directly without npm:
 
-```
-node scripts/node-tests.js
-```
+    ```
+    node scripts/node-tests.js
+    ```
 
 ### Test Coverage
 
