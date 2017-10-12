@@ -15,12 +15,12 @@
 		async filter(arr,fn) {
 			fn = run(fn);
 			return (
-				await Promise.all(arr.map(async (v,idx,arr) => {
+				await Promise.all(arr.map(async function mapper(v,idx,arr) {
 					return [v,await fn(v,idx,arr)];
 				}))
 			)
-			.filter(([v,keep]) => !!keep)
-			.map(([v,keep]) => v);
+			.filter(function filterer([v,keep]) { return !!keep; })
+			.map(function mapper([v,keep]) { return v; });
 		},
 		async reduce(...args) {
 			return serial.reduce(...args);
@@ -84,10 +84,10 @@
 	// ***************************************
 
 	function run(fn) {
-		return async (...args) => {
+		return async function getArgs(...args) {
 			var ret = fn(...args);
 
-			if ("next" in ret) {
+			if (ret && typeof ret.next == "function") {
 				// return a promise for the generator completing
 				return Promise.resolve()
 					.then(function handleNext(value){
