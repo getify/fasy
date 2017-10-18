@@ -188,59 +188,6 @@ QUnit.test( "serial.filter()", async function test(assert){
 	done();
 } );
 
-QUnit.test( "processing function* generator", async function test(assert){
-	function *doStep(v) {
-		yield _delay( 10 );
-		assert.step( `doStep: ${v}` );
-	}
-
-	function *doThrow(v) {
-		if (v == "delay-throw") yield _delay( 10 );
-		throw `nope: ${v}`;
-	}
-
-	function *doReject(v) {
-		if (v == "delay-reject") yield _delay( 10 );
-		yield Promise.reject( `nope: ${v}` );
-	}
-
-	var done = assert.async();
-
-	var list = [1,2,3,4,5];
-
-	var rExpected = [
-		"doStep: 1", "doStep: 2", "doStep: 3", "doStep: 4", "doStep: 5",
-		"nope: 1", "nope: delay-throw", "nope: 2", "nope: delay-reject"
-	];
-
-	try {
-		await FA.concurrent.forEach( doStep, list );
-
-		try { await FA.concurrent.forEach( doThrow, [1] ); }
-		catch (err) { assert.step( err.toString() ); }
-
-		try { await FA.concurrent.forEach( doThrow, ["delay-throw"] ); }
-		catch (err) { assert.step( err.toString() ); }
-
-		try { await FA.concurrent.forEach( doReject, [2] ); }
-		catch (err) { assert.step( err.toString() ); }
-
-		try { await FA.concurrent.forEach( doReject, ["delay-reject"] ); }
-		catch (err) { assert.step( err.toString() ); }
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
-
-	assert.expect( 10 ); // note: 1 assertions + 9 `step(..)` calls
-	assert.verifySteps( rExpected, "generator steps" );
-
-	done();
-} );
-
 QUnit.test( "concurrent.forEach()", async function test(assert){
 	function checkParams(v,i,arr) {
 		if (
@@ -387,6 +334,58 @@ QUnit.test( "serial.forEach()", async function test(assert){
 	done();
 } );
 
+QUnit.test( "processing function* generator", async function test(assert){
+	function *doStep(v) {
+		yield _delay( 10 );
+		assert.step( `doStep: ${v}` );
+	}
+
+	function *doThrow(v) {
+		if (v == "delay-throw") yield _delay( 10 );
+		throw `nope: ${v}`;
+	}
+
+	function *doReject(v) {
+		if (v == "delay-reject") yield _delay( 10 );
+		yield Promise.reject( `nope: ${v}` );
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [
+		"doStep: 1", "doStep: 2", "doStep: 3", "doStep: 4", "doStep: 5",
+		"nope: 1", "nope: delay-throw", "nope: 2", "nope: delay-reject"
+	];
+
+	try {
+		await FA.concurrent.forEach( doStep, list );
+
+		try { await FA.concurrent.forEach( doThrow, [1] ); }
+		catch (err) { assert.step( err.toString() ); }
+
+		try { await FA.concurrent.forEach( doThrow, ["delay-throw"] ); }
+		catch (err) { assert.step( err.toString() ); }
+
+		try { await FA.concurrent.forEach( doReject, [2] ); }
+		catch (err) { assert.step( err.toString() ); }
+
+		try { await FA.concurrent.forEach( doReject, ["delay-reject"] ); }
+		catch (err) { assert.step( err.toString() ); }
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 10 ); // note: 1 assertions + 9 `step(..)` calls
+	assert.verifySteps( rExpected, "generator steps" );
+
+	done();
+} );
 
 
 
