@@ -6,13 +6,13 @@
 	"use strict";
 
 	var concurrent = {
-		async forEach(eachFn,arr) {
+		async forEach(eachFn,arr = []) {
 			await Promise.all(arr.map(run(eachFn)));
 		},
-		async map(mapperFn,arr) {
+		async map(mapperFn,arr = []) {
 			return Promise.all(arr.map(run(mapperFn)));
 		},
-		async filter(predicateFn,arr) {
+		async filter(predicateFn,arr = []) {
 			predicateFn = run(predicateFn);
 			return (
 				await Promise.all(arr.map(async function mapper(v,idx,arr) {
@@ -31,13 +31,13 @@
 	};
 
 	var serial = {
-		async forEach(eachFn,arr) {
+		async forEach(eachFn,arr = []) {
 			eachFn = run(eachFn);
 			for (let [idx,v] of arr.entries()) {
 				await eachFn(v,idx,arr);
 			}
 		},
-		async map(mapperFn,arr) {
+		async map(mapperFn,arr = []) {
 			mapperFn = run(mapperFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
@@ -45,7 +45,7 @@
 			}
 			return ret;
 		},
-		async filter(predicateFn,arr) {
+		async filter(predicateFn,arr = []) {
 			predicateFn = run(predicateFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
@@ -55,7 +55,7 @@
 			}
 			return ret;
 		},
-		async reduce(reducerFn,initial,arr) {
+		async reduce(reducerFn,initial,arr = []) {
 			reducerFn = run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of arr.entries()) {
@@ -63,7 +63,7 @@
 			}
 			return ret;
 		},
-		async reduceRight(reducerFn,initial,arr) {
+		async reduceRight(reducerFn,initial,arr = []) {
 			reducerFn = run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of [...arr.entries()].reverse()) {
