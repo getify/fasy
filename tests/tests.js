@@ -58,7 +58,7 @@ QUnit.test( "concurrent.filter()", async function test(assert){
 	var pExpected = [1,3,5];
 	var qExpected = [
 		"delayedIsOdd @ start: 1", "delayedIsOdd @ start: 2", "delayedIsOdd @ start: 3", "delayedIsOdd @ start: 4", "delayedIsOdd @ start: 5",
-		"delayedIsOdd @ end: 1", "delayedIsOdd @ end: 2", "delayedIsOdd @ end: 3", "delayedIsOdd @ end: 4", "delayedIsOdd @ end: 5"
+		"delayedIsOdd @ end: 1", "delayedIsOdd @ end: 2", "delayedIsOdd @ end: 3", "delayedIsOdd @ end: 4", "delayedIsOdd @ end: 5",
 	];
 	var tExpected = [];
 	var sExpected = [];
@@ -90,6 +90,84 @@ QUnit.test( "concurrent.filter()", async function test(assert){
 	assert.deepEqual( rActual, rExpected, "normal delay" );
 	assert.deepEqual( pActual, pExpected, "concurrency check: result" );
 	assert.verifySteps( qExpected, "concurrency check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+
+	done();
+} );
+
+QUnit.test( "serial.filter()", async function test(assert){
+	function checkParams(v,i,arr) {
+		if (
+			arr === list &&
+			typeof v == "number" && typeof i == "number" && _isArray( arr ) &&
+			v === (i + 1) && arr[i] === v
+		) {
+			return false;
+		}
+		return true;
+	}
+
+	async function delayedIsEven(v) {
+		await _delay( 10 );
+		return v % 2 == 0;
+	}
+
+	async function delayedIsOdd(v) {
+		try {
+			assert.step( `delayedIsOdd @ start: ${v}` );
+			await _delay( 10 );
+			return v % 2 == 1;
+		}
+		finally {
+			assert.step( `delayedIsOdd @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [2,4];
+	var pExpected = [1,3,5];
+	var qExpected = [
+		"delayedIsOdd @ start: 1", "delayedIsOdd @ end: 1",
+		"delayedIsOdd @ start: 2", "delayedIsOdd @ end: 2",
+		"delayedIsOdd @ start: 3", "delayedIsOdd @ end: 3",
+		"delayedIsOdd @ start: 4", "delayedIsOdd @ end: 4",
+		"delayedIsOdd @ start: 5", "delayedIsOdd @ end: 5",
+	];
+	var tExpected = [];
+	var sExpected = [];
+	var uExpected = [];
+
+	try {
+		var rActual = FA.serial.filter( delayedIsEven, list );
+		var pActual = FA.serial.filter( delayedIsOdd, list );
+		// qActual;
+		var tActual = FA.serial.filter( checkParams, list );
+		var sActual = FA.serial.filter( () => true );
+		var uActual = FA.serial.filter( () => true, [] );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 16 ); // note: 6 assertions + 10 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.verifySteps( qExpected, "serial check: steps" );
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
