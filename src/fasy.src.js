@@ -23,8 +23,10 @@
 					return [v,await predicateFn(v,idx,arr)];
 				}))
 			)
-			.filter(function filterer([v,keep]) { return !!keep; })
-			.map(function mapper([v,keep]) { return v; });
+			.reduce(function reducer(ret,[v,keep]){
+				if (keep) return ret.concat(v);
+				return ret;
+			},[]);
 		},
 		async reduce(...args) {
 			return serial.reduce(...args);
