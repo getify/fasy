@@ -500,6 +500,186 @@ QUnit.test( "serial.map()", async function test(assert){
 	done();
 } );
 
+QUnit.test( "reduce()", async function test(assert){
+	function checkParams(acc,v,i,arr) {
+		if (
+			arr === list &&
+			typeof acc == "string" && typeof v == "string" &&
+			typeof i == "number" && _isArray( arr ) &&
+			Number( v ) === (i + 1) && arr[i] === v
+		) {
+			return acc + v;
+		}
+		return NaN;
+	}
+
+	async function delayedConcat(acc,v) {
+		await _delay( 10 );
+		return acc + v;
+	}
+
+	async function delayedHyphenate(acc,v) {
+		try {
+			assert.step( `delayedHyphenate @ start: ${v}` );
+			await _delay( 10 );
+			return acc + "-" + v;
+		}
+		finally {
+			assert.step( `delayedHyphenate @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = ["1","2","3","4","5"];
+
+	var rExpected = "12345";
+	var pExpected = "0-1-2-3-4-5";
+	var qExpected = [
+		"reduce:delayedHyphenate @ start",
+		"delayedHyphenate @ start: 1",
+		"reduce:delayedHyphenate @ end",
+		"delayedHyphenate @ end: 1",
+		"delayedHyphenate @ start: 2", "delayedHyphenate @ end: 2",
+		"delayedHyphenate @ start: 3", "delayedHyphenate @ end: 3",
+		"delayedHyphenate @ start: 4", "delayedHyphenate @ end: 4",
+		"delayedHyphenate @ start: 5", "delayedHyphenate @ end: 5",
+		"reduce:delayedHyphenate @ resolved",
+	];
+	var tExpected = "12345";
+	var sExpected = "";
+	var uExpected = "";
+	var hExpected = "12345";
+
+	try {
+		var rActual = FA.serial.reduce( delayedConcat, "", list );
+		assert.step( "reduce:delayedHyphenate @ start" );
+		var pActual = FA.serial.reduce( delayedHyphenate, "0", list );
+		assert.step( "reduce:delayedHyphenate @ end" );
+		// qActual;
+		var tActual = FA.serial.reduce( checkParams, "", list );
+		var sActual = FA.serial.reduce( () => true, "" );
+		var uActual = FA.serial.reduce( () => true, "", [] );
+		var hActual = FA.concurrent.reduce( delayedConcat, "", list );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "reduce:delayedHyphenate @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+		var hActual = await hActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 20 ); // note: 7 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.verifySteps( qExpected, "serial check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+	assert.deepEqual( hActual, hExpected, "concurrent -> serial" );
+
+	done();
+} );
+
+QUnit.test( "reduceRight()", async function test(assert){
+	function checkParams(acc,v,i,arr) {
+		if (
+			arr === list &&
+			typeof acc == "string" && typeof v == "string" &&
+			typeof i == "number" && _isArray( arr ) &&
+			Number( v ) === (i + 1) && arr[i] === v
+		) {
+			return acc + v;
+		}
+		return NaN;
+	}
+
+	async function delayedConcat(acc,v) {
+		await _delay( 10 );
+		return acc + v;
+	}
+
+	async function delayedHyphenate(acc,v) {
+		try {
+			assert.step( `delayedHyphenate @ start: ${v}` );
+			await _delay( 10 );
+			return acc + "-" + v;
+		}
+		finally {
+			assert.step( `delayedHyphenate @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = ["1","2","3","4","5"];
+
+	var rExpected = "54321";
+	var pExpected = "6-5-4-3-2-1";
+	var qExpected = [
+		"reduceRight:delayedHyphenate @ start",
+		"delayedHyphenate @ start: 5",
+		"reduceRight:delayedHyphenate @ end",
+		"delayedHyphenate @ end: 5",
+		"delayedHyphenate @ start: 4", "delayedHyphenate @ end: 4",
+		"delayedHyphenate @ start: 3", "delayedHyphenate @ end: 3",
+		"delayedHyphenate @ start: 2", "delayedHyphenate @ end: 2",
+		"delayedHyphenate @ start: 1", "delayedHyphenate @ end: 1",
+		"reduceRight:delayedHyphenate @ resolved",
+	];
+	var tExpected = "54321";
+	var sExpected = "";
+	var uExpected = "";
+	var hExpected = "54321";
+
+	try {
+		var rActual = FA.serial.reduceRight( delayedConcat, "", list );
+		assert.step( "reduceRight:delayedHyphenate @ start" );
+		var pActual = FA.serial.reduceRight( delayedHyphenate, "6", list );
+		assert.step( "reduceRight:delayedHyphenate @ end" );
+		// qActual;
+		var tActual = FA.serial.reduceRight( checkParams, "", list );
+		var sActual = FA.serial.reduceRight( () => true, "" );
+		var uActual = FA.serial.reduceRight( () => true, "", [] );
+		var hActual = FA.concurrent.reduceRight( delayedConcat, "", list );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "reduceRight:delayedHyphenate @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+		var hActual = await hActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 20 ); // note: 7 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.verifySteps( qExpected, "serial check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+	assert.deepEqual( hActual, hExpected, "concurrent -> serial" );
+
+	done();
+} );
+
 QUnit.test( "processing function* generator", async function test(assert){
 	function *doStep(v) {
 		yield _delay( 10 );
