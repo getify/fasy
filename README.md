@@ -6,7 +6,7 @@
 [![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-**fasy** is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc) that are capable of handling `async function` functions and `function*` generators. **fasy** supports both concurrent and serial iterations.
+**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc) that are capable of handling `async function` functions and `function*` generators. **fasy** supports both concurrent and serial iterations.
 
 ## Environment Support
 

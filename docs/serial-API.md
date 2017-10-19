@@ -1,6 +1,7 @@
 # Serial API
 
-* [`serial.filter(..)`](#serialfilter)
+* [`serial.filterIn(..)`](#serialfilterin) (aliases: `serial.filter(..)`)
+* [`serial.filterOut(..)`](#serialfilterout)
 * [`serial.flatMap(..)`](#serialflatmap)
 * [`serial.forEach(..)`](#serialforeach)
 * [`serial.map(..)`](#serialmap)
@@ -9,7 +10,7 @@
 
 ----
 
-### `serial.filter(..)`
+### `serial.filterIn(..)`
 
 ([back to top](#serial-api))
 
@@ -40,7 +41,7 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#filter(..)`
         var imgCount = 0;
         var avgBrightness = 0;
 
-        var pickedImages = await FA.serial.filter(
+        var pickedImages = await FA.serial.filterIn(
             async function checkImg(url) {
                 if (imgCount < 2 || avgBrightness < 20) {
                     var img = await preloadImg( url );
@@ -68,6 +69,74 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#filter(..)`
     async function preloadImg(url) { /*..*/ }
     function pixelBrightness(img) { /*..*/ }
     ```
+
+* **Aliases:** `serial.filter(..)`
+
+* **See Also:** [`serial.filterOut(..)`](#serialfilterout)
+
+----
+
+### `serial.filterOut(..)`
+
+([back to top](#serial-api))
+
+Iterate through items in a list (`arr`), checking each item with a predicate function (`fn`), producing a new list of items. To exclude an item from the filtered list, the predicate function should eventually resolve to `true` (or a truthy value); `false` or a falsy value will keep the item. Returns a promise for overall completion of the async filtering; the fulfillment value is the new list.
+
+All predicate functions are processed serially (aka "sequentially, in order"); whenever all of them finish, the completion will be signaled.
+
+This is kind of like the asynchronous equivalent of JavaScript's built-in [`Array#filter(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter), except that the predicate check is inverted.
+
+**Note:** As with all **fasync** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
+
+* **Arguments:**
+    - `fn`: the predicate function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce `true` for exclusion of the item or `false` for retention of the item
+    - `arr`: list to iterate over
+
+* **Returns:** *Promise<array>*
+
+* **Example:**
+
+    ```js
+    pickImages( [
+        "https://some.tld/image1.png",
+        "https://other.tld/image2.png",
+        "https://various.tld/image3.png"
+    ] );
+
+    async function pickImages(imageUrls) {
+        var imgCount = 0;
+        var avgBrightness = 0;
+
+        var pickedImages = await FA.serial.filterOut(
+            async function checkImg(url) {
+                if (imgCount < 2 || avgBrightness < 20) {
+                    var img = await preloadImg( url );
+                    var imgBrightness = pixelBrightness( img );
+                    var newAvgBrightness =
+                        ((avgBrightness * imgCount) + imgBrightness) /
+                        (imgCount + 1);
+
+                    if (newAvgBrightness < 50) {
+                        avgBrightness = newAvgBrightness;
+                        imgCount++;
+                        return false;
+                    }
+                }
+
+                return true;
+            },
+            imageUrls
+        );
+
+        // standard built-in array#forEach
+        pickedImages.forEach( url => console.log( `Picked image: ${url}` ) );
+    }
+
+    async function preloadImg(url) { /*..*/ }
+    function pixelBrightness(img) { /*..*/ }
+    ```
+
+* **See Also:** [`serial.filterIn(..)`](#serialfilterin)
 
 ----
 
@@ -242,7 +311,7 @@ This is (almost) the asynchronous equivalent of JavaScript's built-in [`Array#re
 **Note:** As with all **fasync** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the reducer function; called each time with `acc` (accumulator), `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
+    - `fn`: the reducer function; called each time with `acc` (accumulator), `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new accumulator value
     - `initialValue`: the initial value for the accumulator
     - `arr`: list to iterate over
 

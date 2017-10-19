@@ -7,10 +7,10 @@
 
 	var concurrent = {
 		async forEach(eachFn,arr = []) {
-			await Promise.all(arr.map(run(eachFn)));
+			await Promise.all(arr.map(_run(eachFn)));
 		},
 		async map(mapperFn,arr = []) {
-			return Promise.all(arr.map(run(mapperFn)));
+			return Promise.all(arr.map(_run(mapperFn)));
 		},
 		async flatMap(mapperFn,arr = []) {
 			return (
@@ -19,8 +19,8 @@
 				// note: normal array#reduce
 				.reduce(function reducer(ret,v){ return ret.concat(v); },[]);
 		},
-		async filter(predicateFn,arr = []) {
-			predicateFn = run(predicateFn);
+		async filterIn(predicateFn,arr = []) {
+			predicateFn = _run(predicateFn);
 			return (
 					await Promise.all(arr.map(async function mapper(v,idx,arr) {
 						return [v,await predicateFn(v,idx,arr)];
@@ -32,23 +32,23 @@
 					return ret;
 				},[]);
 		},
-		async reduce(...args) {
-			return serial.reduce(...args);
-		},
-		async reduceRight(...args) {
-			return serial.reduceRight(...args);
+		async filterOut(predicateFn,arr = []) {
+			predicateFn = _run(predicateFn);
+			return concurrent.filterIn(async function filterer(v,idx,arr){
+				return !(await predicateFn(v,idx,arr));
+			},arr);
 		},
 	};
 
 	var serial = {
 		async forEach(eachFn,arr = []) {
-			eachFn = run(eachFn);
+			eachFn = _run(eachFn);
 			for (let [idx,v] of arr.entries()) {
 				await eachFn(v,idx,arr);
 			}
 		},
 		async map(mapperFn,arr = []) {
-			mapperFn = run(mapperFn);
+			mapperFn = _run(mapperFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
 				ret.push(await mapperFn(v,idx,arr));
@@ -62,8 +62,8 @@
 			},arr);
 			return ret;
 		},
-		async filter(predicateFn,arr = []) {
-			predicateFn = run(predicateFn);
+		async filterIn(predicateFn,arr = []) {
+			predicateFn = _run(predicateFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
 				if (await predicateFn(v,idx,arr)) {
@@ -72,8 +72,14 @@
 			}
 			return ret;
 		},
+		async filterOut(predicateFn,arr = []) {
+			predicateFn = _run(predicateFn);
+			return serial.filterIn(async function filterer(v,idx,arr){
+				return !(await predicateFn(v,idx,arr));
+			},arr);
+		},
 		async reduce(reducerFn,initial,arr = []) {
-			reducerFn = run(reducerFn);
+			reducerFn = _run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of arr.entries()) {
 				ret = await reducerFn(ret,v,idx,arr);
@@ -81,7 +87,7 @@
 			return ret;
 		},
 		async reduceRight(reducerFn,initial,arr = []) {
-			reducerFn = run(reducerFn);
+			reducerFn = _run(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of [...arr.entries()].reverse()) {
 				ret = await reducerFn(ret,v,idx,arr);
@@ -95,12 +101,23 @@
 		serial,
 	};
 
+	// method convenience aliases
+	_setMethodAlias("filterIn","filter");
+	concurrent.reduce = serial.reduce;
+	concurrent.reduceRight = serial.reduceRight;
+
 	return publicAPI;
 
 
 	// ***************************************
+	// Private
 
-	function run(fn) {
+	function _setMethodAlias(origName,aliasName) {
+		publicAPI.concurrent[aliasName] = publicAPI.concurrent[origName];
+		publicAPI.serial[aliasName] = publicAPI.serial[origName];
+	}
+
+	function _run(fn) {
 		return async function getArgs(...args) {
 			var ret = fn(...args);
 

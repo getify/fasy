@@ -1,28 +1,41 @@
 "use strict";
 
 QUnit.test( "concurrent: API methods", function test(assert){
-	assert.expect( 6 );
+	assert.expect( 8 );
 
 	assert.ok( _hasProp( FA, "concurrent" ), "FA.concurrent" ),
-	assert.ok( _isFunction( FA.concurrent.filter ), "filter()" );
+	assert.ok( _isFunction( FA.concurrent.filterIn ), "filterIn()" );
+	assert.ok( _isFunction( FA.concurrent.filterOut ), "filterOut()" );
 	assert.ok( _isFunction( FA.concurrent.forEach ), "forEach()" );
 	assert.ok( _isFunction( FA.concurrent.map ), "map()" );
+	assert.ok( _isFunction( FA.concurrent.flatMap ), "flatMap()" );
 	assert.ok( _isFunction( FA.concurrent.reduce ), "reduce()" );
 	assert.ok( _isFunction( FA.concurrent.reduceRight ), "reduceRight()" );
 } );
 
 QUnit.test( "serial: API methods", function test(assert){
-	assert.expect( 6 );
+	assert.expect( 8 );
 
 	assert.ok( _hasProp( FA, "serial" ), "FA.serial" ),
-	assert.ok( _isFunction( FA.serial.filter ), "filter()" );
+	assert.ok( _isFunction( FA.serial.filterIn ), "filterIn()" );
+	assert.ok( _isFunction( FA.serial.filterOut ), "filterOut()" );
 	assert.ok( _isFunction( FA.serial.forEach ), "forEach()" );
 	assert.ok( _isFunction( FA.serial.map ), "map()" );
+	assert.ok( _isFunction( FA.serial.flatMap ), "flatMap()" );
 	assert.ok( _isFunction( FA.serial.reduce ), "reduce()" );
 	assert.ok( _isFunction( FA.serial.reduceRight ), "reduceRight()" );
 } );
 
-QUnit.test( "concurrent.filter()", async function test(assert){
+QUnit.test( "API method aliases", function test(assert){
+	assert.expect( 4 );
+
+	assert.strictEqual( FA.concurrent.filter, FA.concurrent.filterIn, "concurrent: filter -> filterIn" );
+	assert.strictEqual( FA.serial.filter, FA.serial.filterIn, "serial: filter -> filterIn" );
+	assert.strictEqual( FA.concurrent.reduce, FA.serial.reduce, "concurrent.reduce -> serial.reduce" );
+	assert.strictEqual( FA.concurrent.reduceRight, FA.serial.reduceRight, "concurrent.reduceRight -> serial.reduceRight" );
+} );
+
+QUnit.test( "concurrent.filterIn()", async function test(assert){
 	function checkParams(v,i,arr) {
 		if (
 			arr === list &&
@@ -57,29 +70,29 @@ QUnit.test( "concurrent.filter()", async function test(assert){
 	var rExpected = [2,4];
 	var pExpected = [1,3,5];
 	var qExpected = [
-		"filter:delayedIsOdd @ start",
+		"filterIn:delayedIsOdd @ start",
 		"delayedIsOdd @ start: 1", "delayedIsOdd @ start: 2", "delayedIsOdd @ start: 3", "delayedIsOdd @ start: 4", "delayedIsOdd @ start: 5",
-		"filter:delayedIsOdd @ end",
+		"filterIn:delayedIsOdd @ end",
 		"delayedIsOdd @ end: 1", "delayedIsOdd @ end: 2", "delayedIsOdd @ end: 3", "delayedIsOdd @ end: 4", "delayedIsOdd @ end: 5",
-		"filter@delayedIsOdd @ resolved"
+		"filterIn:delayedIsOdd @ resolved"
 	];
 	var tExpected = [];
 	var sExpected = [];
 	var uExpected = [];
 
 	try {
-		var rActual = FA.concurrent.filter( delayedIsEven, list );
-		assert.step( "filter:delayedIsOdd @ start" );
-		var pActual = FA.concurrent.filter( delayedIsOdd, list );
-		assert.step( "filter:delayedIsOdd @ end" );
+		var rActual = FA.concurrent.filterIn( delayedIsEven, list );
+		assert.step( "filterIn:delayedIsOdd @ start" );
+		var pActual = FA.concurrent.filterIn( delayedIsOdd, list );
+		assert.step( "filterIn:delayedIsOdd @ end" );
 		// qActual;
-		var tActual = FA.concurrent.filter( checkParams, list );
-		var sActual = FA.concurrent.filter( () => true );
-		var uActual = FA.concurrent.filter( () => true, [] );
+		var tActual = FA.concurrent.filterIn( checkParams, list );
+		var sActual = FA.concurrent.filterIn( () => true );
+		var uActual = FA.concurrent.filterIn( () => true, [] );
 
 		var rActual = await rActual;
 		var pActual = await pActual;
-		assert.step( "filter@delayedIsOdd @ resolved" );
+		assert.step( "filterIn:delayedIsOdd @ resolved" );
 		// qActual;
 		var tActual = await tActual;
 		var sActual = await sActual;
@@ -103,7 +116,7 @@ QUnit.test( "concurrent.filter()", async function test(assert){
 	done();
 } );
 
-QUnit.test( "serial.filter()", async function test(assert){
+QUnit.test( "serial.filterIn()", async function test(assert){
 	function checkParams(v,i,arr) {
 		if (
 			arr === list &&
@@ -138,33 +151,199 @@ QUnit.test( "serial.filter()", async function test(assert){
 	var rExpected = [2,4];
 	var pExpected = [1,3,5];
 	var qExpected = [
-		"filter:delayedIsOdd @ start",
+		"filterIn:delayedIsOdd @ start",
 		"delayedIsOdd @ start: 1",
-		"filter:delayedIsOdd @ end",
+		"filterIn:delayedIsOdd @ end",
 		"delayedIsOdd @ end: 1",
 		"delayedIsOdd @ start: 2", "delayedIsOdd @ end: 2",
 		"delayedIsOdd @ start: 3", "delayedIsOdd @ end: 3",
 		"delayedIsOdd @ start: 4", "delayedIsOdd @ end: 4",
 		"delayedIsOdd @ start: 5", "delayedIsOdd @ end: 5",
-		"filter:delayedIsOdd @ resolved",
+		"filterIn:delayedIsOdd @ resolved",
 	];
 	var tExpected = [];
 	var sExpected = [];
 	var uExpected = [];
 
 	try {
-		var rActual = FA.serial.filter( delayedIsEven, list );
-		assert.step( "filter:delayedIsOdd @ start" );
-		var pActual = FA.serial.filter( delayedIsOdd, list );
-		assert.step( "filter:delayedIsOdd @ end" );
+		var rActual = FA.serial.filterIn( delayedIsEven, list );
+		assert.step( "filterIn:delayedIsOdd @ start" );
+		var pActual = FA.serial.filterIn( delayedIsOdd, list );
+		assert.step( "filterIn:delayedIsOdd @ end" );
 		// qActual;
-		var tActual = FA.serial.filter( checkParams, list );
-		var sActual = FA.serial.filter( () => true );
-		var uActual = FA.serial.filter( () => true, [] );
+		var tActual = FA.serial.filterIn( checkParams, list );
+		var sActual = FA.serial.filterIn( () => true );
+		var uActual = FA.serial.filterIn( () => true, [] );
 
 		var rActual = await rActual;
 		var pActual = await pActual;
-		assert.step( "filter:delayedIsOdd @ resolved" );
+		assert.step( "filterIn:delayedIsOdd @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.verifySteps( qExpected, "serial check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+
+	done();
+} );
+
+QUnit.test( "concurrent.filterOut()", async function test(assert){
+	function checkParams(v,i,arr) {
+		if (
+			arr === list &&
+			typeof v == "number" && typeof i == "number" && _isArray( arr ) &&
+			v === (i + 1) && arr[i] === v
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	async function delayedIsEven(v) {
+		await _delay( 10 );
+		return v % 2 == 0;
+	}
+
+	async function delayedIsOdd(v) {
+		try {
+			assert.step( `delayedIsOdd @ start: ${v}` );
+			await _delay( 10 );
+			return v % 2 == 1;
+		}
+		finally {
+			assert.step( `delayedIsOdd @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [1,3,5];
+	var pExpected = [2,4];
+	var qExpected = [
+		"filterOut:delayedIsOdd @ start",
+		"delayedIsOdd @ start: 1", "delayedIsOdd @ start: 2", "delayedIsOdd @ start: 3", "delayedIsOdd @ start: 4", "delayedIsOdd @ start: 5",
+		"filterOut:delayedIsOdd @ end",
+		"delayedIsOdd @ end: 1", "delayedIsOdd @ end: 2", "delayedIsOdd @ end: 3", "delayedIsOdd @ end: 4", "delayedIsOdd @ end: 5",
+		"filterOut:delayedIsOdd @ resolved"
+	];
+	var tExpected = [];
+	var sExpected = [];
+	var uExpected = [];
+
+	try {
+		var rActual = FA.concurrent.filterOut( delayedIsEven, list );
+		assert.step( "filterOut:delayedIsOdd @ start" );
+		var pActual = FA.concurrent.filterOut( delayedIsOdd, list );
+		assert.step( "filterOut:delayedIsOdd @ end" );
+		// qActual;
+		var tActual = FA.concurrent.filterOut( checkParams, list );
+		var sActual = FA.concurrent.filterOut( () => false );
+		var uActual = FA.concurrent.filterOut( () => false, [] );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "filterOut:delayedIsOdd @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "concurrency check: result" );
+	assert.verifySteps( qExpected, "concurrency check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+
+	done();
+} );
+
+QUnit.test( "serial.filterOut()", async function test(assert){
+	function checkParams(v,i,arr) {
+		if (
+			arr === list &&
+			typeof v == "number" && typeof i == "number" && _isArray( arr ) &&
+			v === (i + 1) && arr[i] === v
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	async function delayedIsEven(v) {
+		await _delay( 10 );
+		return v % 2 == 0;
+	}
+
+	async function delayedIsOdd(v) {
+		try {
+			assert.step( `delayedIsOdd @ start: ${v}` );
+			await _delay( 10 );
+			return v % 2 == 1;
+		}
+		finally {
+			assert.step( `delayedIsOdd @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [1,3,5];
+	var pExpected = [2,4];
+	var qExpected = [
+		"filterOut:delayedIsOdd @ start",
+		"delayedIsOdd @ start: 1",
+		"filterOut:delayedIsOdd @ end",
+		"delayedIsOdd @ end: 1",
+		"delayedIsOdd @ start: 2", "delayedIsOdd @ end: 2",
+		"delayedIsOdd @ start: 3", "delayedIsOdd @ end: 3",
+		"delayedIsOdd @ start: 4", "delayedIsOdd @ end: 4",
+		"delayedIsOdd @ start: 5", "delayedIsOdd @ end: 5",
+		"filterOut:delayedIsOdd @ resolved",
+	];
+	var tExpected = [];
+	var sExpected = [];
+	var uExpected = [];
+
+	try {
+		var rActual = FA.serial.filterOut( delayedIsEven, list );
+		assert.step( "filterOut:delayedIsOdd @ start" );
+		var pActual = FA.serial.filterOut( delayedIsOdd, list );
+		assert.step( "filterOut:delayedIsOdd @ end" );
+		// qActual;
+		var tActual = FA.serial.filterOut( checkParams, list );
+		var sActual = FA.serial.filterOut( () => true );
+		var uActual = FA.serial.filterOut( () => true, [] );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "filterOut:delayedIsOdd @ resolved" );
 		// qActual;
 		var tActual = await tActual;
 		var sActual = await sActual;
@@ -216,27 +395,27 @@ QUnit.test( "concurrent.forEach()", async function test(assert){
 
 	var rExpected = undefined;
 	var pExpected = [
-		"filter:delayedEach @ start",
+		"forEach:delayedEach @ start",
 		"delayedEach @ start: 1", "delayedEach @ start: 2", "delayedEach @ start: 3", "delayedEach @ start: 4", "delayedEach @ start: 5",
-		"filter:delayedEach @ end",
+		"forEach:delayedEach @ end",
 		"delayedEach @ end: 1", "delayedEach @ end: 2", "delayedEach @ end: 3", "delayedEach @ end: 4", "delayedEach @ end: 5",
-		"filter:delayedEach @ resolved",
+		"forEach:delayedEach @ resolved",
 	];
 	var qExpected = undefined;
 	var tExpected = undefined;
 	var sExpected = undefined;
 
 	try {
-		assert.step( "filter:delayedEach @ start" );
+		assert.step( "forEach:delayedEach @ start" );
 		var rActual = FA.concurrent.forEach( delayedEach, list );
-		assert.step( "filter:delayedEach @ end" );
+		assert.step( "forEach:delayedEach @ end" );
 		// pActual;
 		var qActual = FA.concurrent.forEach( checkParams, list );
 		var tActual = FA.concurrent.forEach( () => true );
 		var sActual = FA.concurrent.forEach( () => true, [] );
 
 		var rActual = await rActual;
-		assert.step( "filter:delayedEach @ resolved" );
+		assert.step( "forEach:delayedEach @ resolved" );
 		// pActual;
 		var qActual = await qActual;
 		var tActual = await tActual;
@@ -287,31 +466,31 @@ QUnit.test( "serial.forEach()", async function test(assert){
 
 	var rExpected = undefined;
 	var pExpected = [
-		"filter:delayedEach @ start",
+		"forEach:delayedEach @ start",
 		"delayedEach @ start: 1",
-		"filter:delayedEach @ end",
+		"forEach:delayedEach @ end",
 		"delayedEach @ end: 1",
 		"delayedEach @ start: 2", "delayedEach @ end: 2",
 		"delayedEach @ start: 3", "delayedEach @ end: 3",
 		"delayedEach @ start: 4", "delayedEach @ end: 4",
 		"delayedEach @ start: 5", "delayedEach @ end: 5",
-		"filter:delayedEach @ resolved",
+		"forEach:delayedEach @ resolved",
 	];
 	var qExpected = undefined;
 	var tExpected = undefined;
 	var sExpected = undefined;
 
 	try {
-		assert.step( "filter:delayedEach @ start" );
+		assert.step( "forEach:delayedEach @ start" );
 		var rActual = FA.serial.forEach( delayedEach, list );
-		assert.step( "filter:delayedEach @ end" );
+		assert.step( "forEach:delayedEach @ end" );
 		// pActual;
 		var qActual = FA.serial.forEach( checkParams, list );
 		var tActual = FA.serial.forEach( () => true );
 		var sActual = FA.serial.forEach( () => true, [] );
 
 		var rActual = await rActual;
-		assert.step( "filter:delayedEach @ resolved" );
+		assert.step( "forEach:delayedEach @ resolved" );
 		// pActual;
 		var qActual = await qActual;
 		var tActual = await tActual;
@@ -805,7 +984,6 @@ QUnit.test( "reduceRight()", async function test(assert){
 	var tExpected = "54321";
 	var sExpected = "";
 	var uExpected = "";
-	var hExpected = "54321";
 
 	try {
 		var rActual = FA.serial.reduceRight( delayedConcat, "", list );
@@ -816,7 +994,6 @@ QUnit.test( "reduceRight()", async function test(assert){
 		var tActual = FA.serial.reduceRight( checkParams, "", list );
 		var sActual = FA.serial.reduceRight( () => true, "" );
 		var uActual = FA.serial.reduceRight( () => true, "", [] );
-		var hActual = FA.concurrent.reduceRight( delayedConcat, "", list );
 
 		var rActual = await rActual;
 		var pActual = await pActual;
@@ -825,7 +1002,6 @@ QUnit.test( "reduceRight()", async function test(assert){
 		var tActual = await tActual;
 		var sActual = await sActual;
 		var uActual = await uActual;
-		var hActual = await hActual;
 	}
 	catch (err) {
 		assert.expect( 1 );
@@ -834,14 +1010,13 @@ QUnit.test( "reduceRight()", async function test(assert){
 		return;
 	}
 
-	assert.expect( 20 ); // note: 7 assertions + 13 `step(..)` calls
+	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
 	assert.deepEqual( pActual, pExpected, "serial check: result" );
 	assert.verifySteps( qExpected, "serial check: steps" );
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-	assert.deepEqual( hActual, hExpected, "concurrent -> serial" );
 
 	done();
 } );
