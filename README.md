@@ -23,7 +23,7 @@ FA.concurrent.map( getOrders, users )
 .then( userOrders => console.log( userOrders ) );
 ```
 
-This would work fine with any implementation of `map(..)` if `getOrders(..)` was synchronous. But `concurrent.map(..)` is different in that it handles/expects asynchronously completing functions, like `async function` functions or `function*` generators.
+This would work fine with any implementation of `map(..)` if `getOrders(..)` was synchronous. But `concurrent.map(..)` is different in that it handles/expects asynchronously completing functions, like `async function` functions or `function*` generators. Of course, you can *also* use normal synchronous functions as well.
 
 `concurrent.map(..)` will run each call to `getOrders(..)` concurrently (aka "in parallel"), and once all are complete, fulfill its returned promise with the final result of the mapping.
 
@@ -45,7 +45,7 @@ var users = [ "bzmau", "getify", "frankz" ];
 
 FA.serial.map(
     function *getOrders(username){
-       var user = yield lookupUser( username );
+        var user = yield lookupUser( username );
         return lookupOrders( user.id );
     },
     users

@@ -702,7 +702,7 @@ QUnit.test( "processing function* generator", async function test(assert){
 
 	var rExpected = [
 		"doStep: 1", "doStep: 2", "doStep: 3", "doStep: 4", "doStep: 5",
-		"nope: 1", "nope: delay-throw", "nope: 2", "nope: delay-reject"
+		"nope: 1", "nope: delay-throw", "nope: 2", "nope: delay-reject",
 	];
 
 	try {
@@ -729,6 +729,50 @@ QUnit.test( "processing function* generator", async function test(assert){
 
 	assert.expect( 10 ); // note: 1 assertions + 9 `step(..)` calls
 	assert.verifySteps( rExpected, "generator steps" );
+
+	done();
+} );
+
+QUnit.test( "processing synchronous function", async function test(assert){
+	function doStep(v) {
+		assert.step( `doStep: ${v}` );
+	}
+
+	function doThrow(v) {
+		throw `nope: ${v}`;
+	}
+
+	function doReject(v) {
+		return Promise.reject( `nope: ${v}` );
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [
+		"doStep: 1", "doStep: 2", "doStep: 3", "doStep: 4", "doStep: 5",
+		"nope: 1", "nope: 2",
+	];
+
+	try {
+		await FA.concurrent.forEach( doStep, list );
+
+		try { await FA.concurrent.forEach( doThrow, [1] ); }
+		catch (err) { assert.step( err.toString() ); }
+
+		try { await FA.concurrent.forEach( doReject, [2] ); }
+		catch (err) { assert.step( err.toString() ); }
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 8 ); // note: 1 assertions + 7 `step(..)` calls
+	assert.verifySteps( rExpected, "sync function steps" );
 
 	done();
 } );
