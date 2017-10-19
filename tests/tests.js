@@ -325,11 +325,177 @@ QUnit.test( "serial.forEach()", async function test(assert){
 	}
 
 	assert.expect( 18 ); // note: 5 assertions + 10 `step(..)` calls
-	assert.strictEqual( rActual, rExpected, "concurrency check: result" );
-	assert.verifySteps( pExpected, "concurrency check: steps" );
+	assert.strictEqual( rActual, rExpected, "serial check: result" );
+	assert.verifySteps( pExpected, "serial check: steps" );
 	assert.strictEqual( qActual, qExpected, "predicate params check" );
 	assert.strictEqual( tActual, tExpected, "array undefined" );
 	assert.strictEqual( sActual, sExpected, "array empty" );
+
+	done();
+} );
+
+QUnit.test( "concurrent.map()", async function test(assert){
+	function checkParams(v,i,arr) {
+		if (
+			arr === list &&
+			typeof v == "number" && typeof i == "number" && _isArray( arr ) &&
+			v === (i + 1) && arr[i] === v
+		) {
+			return false;
+		}
+		return true;
+	}
+
+	async function delayedDouble(v) {
+		await _delay( 10 );
+		return v * 2;
+	}
+
+	async function delayedIncrement(v) {
+		try {
+			assert.step( `delayedIncrement @ start: ${v}` );
+			await _delay( 10 );
+			return v + 1;
+		}
+		finally {
+			assert.step( `delayedIncrement @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [2,4,6,8,10];
+	var pExpected = [2,3,4,5,6];
+	var qExpected = [
+		"map:delayedIncrement @ start",
+		"delayedIncrement @ start: 1", "delayedIncrement @ start: 2", "delayedIncrement @ start: 3", "delayedIncrement @ start: 4", "delayedIncrement @ start: 5",
+		"map:delayedIncrement @ end",
+		"delayedIncrement @ end: 1", "delayedIncrement @ end: 2", "delayedIncrement @ end: 3", "delayedIncrement @ end: 4", "delayedIncrement @ end: 5",
+		"map:delayedIncrement @ resolved"
+	];
+	var tExpected = [false,false,false,false,false];
+	var sExpected = [];
+	var uExpected = [];
+
+	try {
+		var rActual = FA.concurrent.map( delayedDouble, list );
+		assert.step( "map:delayedIncrement @ start" );
+		var pActual = FA.concurrent.map( delayedIncrement, list );
+		assert.step( "map:delayedIncrement @ end" );
+		// qActual;
+		var tActual = FA.concurrent.map( checkParams, list );
+		var sActual = FA.concurrent.map( () => true );
+		var uActual = FA.concurrent.map( () => true, [] );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "map:delayedIncrement @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "concurrency check: result" );
+	assert.verifySteps( qExpected, "concurrency check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
+
+	done();
+} );
+
+QUnit.test( "serial.map()", async function test(assert){
+	function checkParams(v,i,arr) {
+		if (
+			arr === list &&
+			typeof v == "number" && typeof i == "number" && _isArray( arr ) &&
+			v === (i + 1) && arr[i] === v
+		) {
+			return false;
+		}
+		return true;
+	}
+
+	async function delayedDouble(v) {
+		await _delay( 10 );
+		return v * 2;
+	}
+
+	async function delayedIncrement(v) {
+		try {
+			assert.step( `delayedIncrement @ start: ${v}` );
+			await _delay( 10 );
+			return v + 1;
+		}
+		finally {
+			assert.step( `delayedIncrement @ end: ${v}` );
+		}
+	}
+
+	var done = assert.async();
+
+	var list = [1,2,3,4,5];
+
+	var rExpected = [2,4,6,8,10];
+	var pExpected = [2,3,4,5,6];
+	var qExpected = [
+		"map:delayedIncrement @ start",
+		"delayedIncrement @ start: 1",
+		"map:delayedIncrement @ end",
+		"delayedIncrement @ end: 1",
+		"delayedIncrement @ start: 2", "delayedIncrement @ end: 2",
+		"delayedIncrement @ start: 3", "delayedIncrement @ end: 3",
+		"delayedIncrement @ start: 4", "delayedIncrement @ end: 4",
+		"delayedIncrement @ start: 5", "delayedIncrement @ end: 5",
+		"map:delayedIncrement @ resolved",
+	];
+	var tExpected = [false,false,false,false,false];
+	var sExpected = [];
+	var uExpected = [];
+
+	try {
+		var rActual = FA.serial.map( delayedDouble, list );
+		assert.step( "map:delayedIncrement @ start" );
+		var pActual = FA.serial.map( delayedIncrement, list );
+		assert.step( "map:delayedIncrement @ end" );
+		// qActual;
+		var tActual = FA.serial.map( checkParams, list );
+		var sActual = FA.serial.map( () => true );
+		var uActual = FA.serial.map( () => true, [] );
+
+		var rActual = await rActual;
+		var pActual = await pActual;
+		assert.step( "map:delayedIncrement @ resolved" );
+		// qActual;
+		var tActual = await tActual;
+		var sActual = await sActual;
+		var uActual = await uActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "normal delay" );
+	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.verifySteps( qExpected, "serial check: steps" );
+	assert.deepEqual( tActual, tExpected, "predicate params check" );
+	assert.deepEqual( sActual, sExpected, "array undefined" );
+	assert.deepEqual( uActual, uExpected, "array empty" );
 
 	done();
 } );
