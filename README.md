@@ -121,7 +121,7 @@ async function getAllOrders() {
 }
 ```
 
-Unfortunately, aside from being more verbose, this "fix" is fairly limited. It really only works for `map(..)` and not for something like `filter(..)`. Also, since it assumes concurrency, there's no way to do the iterations serially (for any of various reasons).
+Unfortunately, aside from being more verbose, this "fix" is fairly limited. It really only works for `map(..)` and not for something like `filter(..)`. Also, as that fix assumes concurrency, there's no good way to do the FP-style iterations serially.
 
 With **fasy**, you can do either concurrent or serial iterations of asynchronous operations:
 
