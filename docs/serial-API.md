@@ -1,12 +1,51 @@
 # Serial API
 
+* [`serial.compose(..)`](#serialcompose)
 * [`serial.filterIn(..)`](#serialfilterin) (aliases: `serial.filter(..)`)
 * [`serial.filterOut(..)`](#serialfilterout)
 * [`serial.flatMap(..)`](#serialflatmap)
 * [`serial.forEach(..)`](#serialforeach)
 * [`serial.map(..)`](#serialmap)
+* [`serial.pipe(..)`](#serialpipe)
 * [`serial.reduce(..)`](#serialreduce)
 * [`serial.reduceRight(..)`](#serialreduceright)
+
+----
+
+### `serial.compose(..)`
+
+([back to top](#serial-api))
+
+Creates (immediately) a composed function from a list of functions, any/all of which may be asynchronous. The composed function can take any number of arguments initially, and returns a promise for eventual completion of the overall async composition; the fulfillment value is the final return value from the last function in the composition.
+
+Each step of the composition will be processed right-to-left, serially (aka "sequentially, in order"); whenever all of them finish, the completion will be signaled.
+
+**Note:** As with all **fasync** methods, the functions in `fns` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
+
+* **Arguments:**
+    - `fns`: the list of functions to compose
+
+* **Returns:** *function* (that returns *Promise<any>*)
+
+* **Example:**
+
+    ```js
+    // define composed function
+    var prepareImg = FA.serial.compose( [makeImgDOMElem,prefetchImage,imgURL] );
+
+    renderImage( "image1" );
+
+    async function renderImage(url) {
+        var imgElem = await prepareImg( url, "png" );
+        document.body.appendChild( imgElem );
+    }
+
+    function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
+    async function prefetchImage(url) { /* .. */ }
+    function makeImgDOMElem(img) { /* .. */ }
+    ```
+
+* **See Also:** [`serial.pipe(..)`](#serialpipe)
 
 ----
 
@@ -294,6 +333,43 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#map(..)`](h
     ```
 
 * **See Also:** [`serial.flatMap(..)`](#serialflatmap)
+
+----
+
+### `serial.pipe(..)`
+
+([back to top](#serial-api))
+
+Creates (immediately) a piped function from a list of functions, any/all of which may be asynchronous. The piped function can take any number of arguments initially, and returns a promise for eventual completion of the overall async piping-composition; the fulfillment value is the final return value from the last function in the piping-composition.
+
+Each step of the piping-composition will be processed left-to-right, serially (aka "sequentially, in order"); whenever all of them finish, the completion will be signaled.
+
+**Note:** As with all **fasync** methods, the functions in `fns` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
+
+* **Arguments:**
+    - `fns`: the list of functions to pipe
+
+* **Returns:** *function* (that returns *Promise<any>*)
+
+* **Example:**
+
+    ```js
+    // define piped function
+    var prepareImg = FA.serial.pipe( [imgURL,prefetchImage,makeImgDOMElem] );
+
+    renderImage( "image1" );
+
+    async function renderImage(url) {
+        var imgElem = await prepareImg( url, "png" );
+        document.body.appendChild( imgElem );
+    }
+
+    function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
+    async function prefetchImage(url) { /* .. */ }
+    function makeImgDOMElem(img) { /* .. */ }
+    ```
+
+* **See Also:** [`serial.compose(..)`](#serialcompose)
 
 ----
 

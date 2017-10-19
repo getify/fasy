@@ -94,6 +94,50 @@
 			}
 			return ret;
 		},
+		pipe(fns = []) {
+			// at a minimum, ensure we have the identity function in the pipe
+			if (fns.length == 0) {
+				fns = [v => v];
+			}
+			return function piped(...args){
+				return serial.reduce(
+						function reducer(ret,fn){
+							// special handling only the first iteration, to pass
+							// along all the `args`
+							if (ret === args) {
+								return fn( ...ret );
+							}
+							// otherwise, in the general case, only pass along
+							// single return value from previous iteration's call
+							return fn( ret );
+						},
+						args,
+						fns
+					);
+			};
+		},
+		compose(fns = []) {
+			// at a minimum, ensure we have the identity function in the composition
+			if (fns.length == 0) {
+				fns = [v => v];
+			}
+			return function composed(...args){
+				return serial.reduceRight(
+						function reducer(ret,fn){
+							// special handling only the first iteration, to pass
+							// along all the `args`
+							if (ret === args) {
+								return fn( ...ret );
+							}
+							// otherwise, in the general case, only pass along
+							// single return value from previous iteration's call
+							return fn( ret );
+						},
+						args,
+						fns
+					);
+			};
+		}
 	};
 
 	var publicAPI = {
@@ -105,6 +149,8 @@
 	_setMethodAlias("filterIn","filter");
 	concurrent.reduce = serial.reduce;
 	concurrent.reduceRight = serial.reduceRight;
+	concurrent.pipe = serial.pipe;
+	concurrent.compose = serial.compose;
 
 	return publicAPI;
 

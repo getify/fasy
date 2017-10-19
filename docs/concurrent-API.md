@@ -1,12 +1,24 @@
 # Concurrent API
 
+* [`concurrent.compose(..)`](#concurrentcompose)
 * [`concurrent.filterIn(..)`](#concurrentfilterin) (aliases: `concurrent.filter(..)`)
 * [`concurrent.filterOut(..)`](#concurrentfilterout)
 * [`concurrent.flatMap(..)`](#concurrentflatmap)
 * [`concurrent.forEach(..)`](#concurrentforeach)
 * [`concurrent.map(..)`](#concurrentmap)
+* [`concurrent.pipe(..)`](#concurrentpipe)
 * [`concurrent.reduce(..)`](#concurrentreduce)
 * [`concurrent.reduceRight(..)`](#concurrentreduceright)
+
+----
+
+### `concurrent.compose(..)`
+### `concurrent.pipe(..)`
+
+
+([back to top](#concurrent-api))
+
+These methods have no rational concurrent definition; for convenience only, they're aliases for [`serial.compose(..)`](serial-API.md#serialcompose) / [`serial.pipe(..)`](serial-API.md#serialpipe), respectively.
 
 ----
 
@@ -216,4 +228,4 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#map(..)`](h
 
 ([back to top](#concurrent-api))
 
-These methods have no rational concurrent definition; they're aliases for [`serial.reduce(..)`](serial-API.md#serialreduce) / [`serial.reduceRight(..)`](serial-API.md#serialreduceright), respectively.
+These methods have no rational concurrent definition; for convenience only, they're aliases for [`serial.reduce(..)`](serial-API.md#serialreduce) / [`serial.reduceRight(..)`](serial-API.md#serialreduceright), respectively.
