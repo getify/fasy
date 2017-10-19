@@ -12,6 +12,10 @@
 		async map(mapperFn,arr = []) {
 			return Promise.all(arr.map(run(mapperFn)));
 		},
+		async flatMap(mapperFn,arr = []) {
+			var ret = await concurrent.map(mapperFn,arr);
+			return ret.reduce(function reducer(list,v){ return list.concat(v); },[]);
+		},
 		async filter(predicateFn,arr = []) {
 			predicateFn = run(predicateFn);
 			return (
@@ -43,6 +47,13 @@
 			for (let [idx,v] of arr.entries()) {
 				ret.push(await mapperFn(v,idx,arr));
 			}
+			return ret;
+		},
+		async flatMap(mapperFn,arr = []) {
+			var ret = [];
+			await serial.forEach(async function eacher(v,idx,arr){
+				ret = ret.concat(await mapperFn(v,idx,arr));
+			},arr);
 			return ret;
 		},
 		async filter(predicateFn,arr = []) {

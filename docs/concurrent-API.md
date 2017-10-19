@@ -1,6 +1,7 @@
 # Concurrent API
 
 * [`concurrent.filter(..)`](#concurrentfilter)
+* [`concurrent.flatMap(..)`](#concurrentflatmap)
 * [`concurrent.forEach(..)`](#concurrentforeach)
 * [`concurrent.map(..)`](#concurrentmap)
 * [`concurrent.reduce(..)`](#concurrentreduce)
@@ -42,6 +43,48 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#filter(..)`
 
     async function imgExists(url) { /*..*/ }
     ```
+
+----
+
+### `concurrent.flatMap(..)`
+
+([back to top](#concurrent-api))
+
+Iterate through items in a list (`arr`), mapping each item to a new value with a function (`fn`), producing a new list of items. If a mapped value is itself a list, this list is flattened (one level) into the overall return list. Returns a promise for overall completion of the async iteration; the fulfillment value is the new list.
+
+All mapper functions are processed concurrently (aka "in parallel"); whenever all of them finish, the completion will be signaled.
+
+This is kind of like the asynchronous equivalent of JavaScript's built-in [`Array#map(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map), except that additionally any mapped return values that are lists get flattened into the result.
+
+**Note:** As with all **fasync** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
+
+* **Arguments:**
+    - `fn`: the mapper function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
+    - `arr`: list to iterate over
+
+* **Returns:** *Promise<array>*
+
+* **Example:**
+
+    ```js
+    fetchDimensions( [
+        "https://some.tld/image1.png",
+        "https://other.tld/image2.png",
+        "https://various.tld/image3.png"
+    ] );
+
+    async function fetchDimensions(imageUrls) {
+        var dimensions = await FA.concurrent.flatMap( extractImgDimensions, imageUrls );
+        console.log( `Dimensions: ${dimensions}` );
+        // example output:
+        // Dimensions: 350,200,500,500,640,480
+    }
+
+    async function extractImgDimensions(url) { /*..*/ }
+    // returns: [width,height]
+    ```
+
+* **See Also:** [`concurrent.map(..)`](#concurrentmap)
 
 ----
 
@@ -103,19 +146,24 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#map(..)`](h
 * **Example:**
 
     ```js
-    fetchImagesData( [
+    fetchSizes( [
         "https://some.tld/image1.png",
         "https://other.tld/image2.png",
         "https://various.tld/image3.png"
     ] );
 
-    async function fetchImagesData(imageUrls) {
-        var imgDataList = await FA.concurrent.map( extractImgData, imageUrls );
-        console.log( `Images data: ${imgDataList}` );
+    async function fetchSizes(imageUrls) {
+        var sizes = await FA.concurrent.map( extractImgSize, imageUrls );
+        console.log( `Image sizes: ${sizes}` );
+        // example output:
+        // Image sizes: 62774,103906,458859
     }
 
-    async function extractImgData(url) { /*..*/ }
+    async function extractImgSize(url) { /*..*/ }
+    // returns: imgSize
     ```
+
+* **See Also:** [`concurrent.flatMap(..)`](#concurrentflatmap)
 
 ----
 
