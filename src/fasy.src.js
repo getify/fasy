@@ -13,20 +13,24 @@
 			return Promise.all(arr.map(run(mapperFn)));
 		},
 		async flatMap(mapperFn,arr = []) {
-			var ret = await concurrent.map(mapperFn,arr);
-			return ret.reduce(function reducer(list,v){ return list.concat(v); },[]);
+			return (
+					await concurrent.map(mapperFn,arr)
+				)
+				// note: normal array#reduce
+				.reduce(function reducer(ret,v){ return ret.concat(v); },[]);
 		},
 		async filter(predicateFn,arr = []) {
 			predicateFn = run(predicateFn);
 			return (
-				await Promise.all(arr.map(async function mapper(v,idx,arr) {
-					return [v,await predicateFn(v,idx,arr)];
-				}))
-			)
-			.reduce(function reducer(ret,[v,keep]){
-				if (keep) return ret.concat(v);
-				return ret;
-			},[]);
+					await Promise.all(arr.map(async function mapper(v,idx,arr) {
+						return [v,await predicateFn(v,idx,arr)];
+					}))
+				)
+				// note: normal array#reduce
+				.reduce(function reducer(ret,[v,keep]){
+					if (keep) return ret.concat(v);
+					return ret;
+				},[]);
 		},
 		async reduce(...args) {
 			return serial.reduce(...args);
