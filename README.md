@@ -29,7 +29,7 @@ This would work fine with any implementation of `map(..)` if `getOrders(..)` was
 
 `concurrent.map(..)` will run each call to `getOrders(..)` concurrently (aka "in parallel"), and once all are complete, fulfill its returned promise with the final result of the mapping.
 
-But what if you wanted to run each `getOrders(..)` call one at a time, in succession? Use `FA.serial.map(..)`:
+But what if you wanted to run each `getOrders(..)` call one at a time, in succession? Use `serial.map(..)`:
 
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
@@ -203,7 +203,9 @@ getOrders( "getify" )
 
 **Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values. [More on that](#syncasync-normalization) below.
 
-Instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
+The async composition being shown here is only for illustration purposes. **fasy** provides [`serial.compose(..)`](docs/serial-API.md#serialcompose) and [`serial.pipe(..)`](docs/serial-API.md#serialpipe) for performing async compositions; these methods should be preferred over doing it manually yourself.
+
+By the way, instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
 
 ```js
 async function getOrders(username) {
