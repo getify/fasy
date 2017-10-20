@@ -36,10 +36,18 @@ function testDone(results){
 		console.log(`Failed: '${results.name}' (${results.failed}/${results.total})`);
 		for (let i = 0; i < results.assertions.length; i++) {
 			if (results.assertions[i].result === false) {
-				let { message, expected, actual } = testLogEntries[testId][results.assertions[i].message];
+				let { message, expected, actual, source } = testLogEntries[testId][results.assertions[i].message];
 				console.log(`  ${message}`);
-				console.log(`    expected: ${prettyPrint(expected)}`);
-				console.log(`    actual: ${prettyPrint(actual)}`);
+				// is there a JS exception stack trace included?
+				if (source && /^\w*Error: .+/.test(source)) {
+					console.log("");
+					console.log(`  ${source}`);
+					console.log("");
+				}
+				else {
+					console.log(`    expected: ${prettyPrint(expected)}`);
+					console.log(`    actual: ${prettyPrint(actual)}`);
+				}
 			}
 		}
 	}

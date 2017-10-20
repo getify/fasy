@@ -81,8 +81,6 @@ QUnit.test( "concurrent.filterIn()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,4];
@@ -98,32 +96,24 @@ QUnit.test( "concurrent.filterIn()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.concurrent.filterIn( delayedIsEven, list );
-		assert.step( "filterIn:delayedIsOdd @ start" );
-		var pActual = FA.concurrent.filterIn( delayedIsOdd, list );
-		assert.step( "filterIn:delayedIsOdd @ end" );
-		// qActual;
-		var tActual = FA.concurrent.filterIn( checkParams, list );
-		var sActual = FA.concurrent.filterIn( () => true );
-		var uActual = FA.concurrent.filterIn( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.concurrent.filterIn( delayedIsEven, list );
+	assert.step( "filterIn:delayedIsOdd @ start" );
+	var pActual = FA.concurrent.filterIn( delayedIsOdd, list );
+	assert.step( "filterIn:delayedIsOdd @ end" );
+	// qActual;
+	var tActual = FA.concurrent.filterIn( checkParams, list );
+	var sActual = FA.concurrent.filterIn( () => true );
+	var uActual = FA.concurrent.filterIn( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "filterIn:delayedIsOdd @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "filterIn:delayedIsOdd @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -132,8 +122,6 @@ QUnit.test( "concurrent.filterIn()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.filterIn()", async function test(assert){
@@ -164,8 +152,6 @@ QUnit.test( "serial.filterIn()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,4];
@@ -185,32 +171,24 @@ QUnit.test( "serial.filterIn()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.filterIn( delayedIsEven, list );
-		assert.step( "filterIn:delayedIsOdd @ start" );
-		var pActual = FA.serial.filterIn( delayedIsOdd, list );
-		assert.step( "filterIn:delayedIsOdd @ end" );
-		// qActual;
-		var tActual = FA.serial.filterIn( checkParams, list );
-		var sActual = FA.serial.filterIn( () => true );
-		var uActual = FA.serial.filterIn( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.filterIn( delayedIsEven, list );
+	assert.step( "filterIn:delayedIsOdd @ start" );
+	var pActual = FA.serial.filterIn( delayedIsOdd, list );
+	assert.step( "filterIn:delayedIsOdd @ end" );
+	// qActual;
+	var tActual = FA.serial.filterIn( checkParams, list );
+	var sActual = FA.serial.filterIn( () => true );
+	var uActual = FA.serial.filterIn( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "filterIn:delayedIsOdd @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "filterIn:delayedIsOdd @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -219,8 +197,6 @@ QUnit.test( "serial.filterIn()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "concurrent.filterOut()", async function test(assert){
@@ -251,8 +227,6 @@ QUnit.test( "concurrent.filterOut()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [1,3,5];
@@ -268,32 +242,24 @@ QUnit.test( "concurrent.filterOut()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.concurrent.filterOut( delayedIsEven, list );
-		assert.step( "filterOut:delayedIsOdd @ start" );
-		var pActual = FA.concurrent.filterOut( delayedIsOdd, list );
-		assert.step( "filterOut:delayedIsOdd @ end" );
-		// qActual;
-		var tActual = FA.concurrent.filterOut( checkParams, list );
-		var sActual = FA.concurrent.filterOut( () => false );
-		var uActual = FA.concurrent.filterOut( () => false, [] );
+	// 1. make calls that create promises
+	var rActual = FA.concurrent.filterOut( delayedIsEven, list );
+	assert.step( "filterOut:delayedIsOdd @ start" );
+	var pActual = FA.concurrent.filterOut( delayedIsOdd, list );
+	assert.step( "filterOut:delayedIsOdd @ end" );
+	// qActual;
+	var tActual = FA.concurrent.filterOut( checkParams, list );
+	var sActual = FA.concurrent.filterOut( () => false );
+	var uActual = FA.concurrent.filterOut( () => false, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "filterOut:delayedIsOdd @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "filterOut:delayedIsOdd @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -302,8 +268,6 @@ QUnit.test( "concurrent.filterOut()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.filterOut()", async function test(assert){
@@ -334,8 +298,6 @@ QUnit.test( "serial.filterOut()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [1,3,5];
@@ -355,32 +317,24 @@ QUnit.test( "serial.filterOut()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.filterOut( delayedIsEven, list );
-		assert.step( "filterOut:delayedIsOdd @ start" );
-		var pActual = FA.serial.filterOut( delayedIsOdd, list );
-		assert.step( "filterOut:delayedIsOdd @ end" );
-		// qActual;
-		var tActual = FA.serial.filterOut( checkParams, list );
-		var sActual = FA.serial.filterOut( () => true );
-		var uActual = FA.serial.filterOut( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.filterOut( delayedIsEven, list );
+	assert.step( "filterOut:delayedIsOdd @ start" );
+	var pActual = FA.serial.filterOut( delayedIsOdd, list );
+	assert.step( "filterOut:delayedIsOdd @ end" );
+	// qActual;
+	var tActual = FA.serial.filterOut( checkParams, list );
+	var sActual = FA.serial.filterOut( () => true );
+	var uActual = FA.serial.filterOut( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "filterOut:delayedIsOdd @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "filterOut:delayedIsOdd @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -389,8 +343,6 @@ QUnit.test( "serial.filterOut()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "concurrent.forEach()", async function test(assert){
@@ -415,8 +367,6 @@ QUnit.test( "concurrent.forEach()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = undefined;
@@ -431,30 +381,22 @@ QUnit.test( "concurrent.forEach()", async function test(assert){
 	var tExpected = undefined;
 	var sExpected = undefined;
 
-	try {
-		assert.step( "forEach:delayedEach @ start" );
-		// 1. make calls that create promises
-		var rActual = FA.concurrent.forEach( delayedEach, list );
-		assert.step( "forEach:delayedEach @ end" );
-		// pActual;
-		var qActual = FA.concurrent.forEach( checkParams, list );
-		var tActual = FA.concurrent.forEach( () => true );
-		var sActual = FA.concurrent.forEach( () => true, [] );
+	assert.step( "forEach:delayedEach @ start" );
+	// 1. make calls that create promises
+	var rActual = FA.concurrent.forEach( delayedEach, list );
+	assert.step( "forEach:delayedEach @ end" );
+	// pActual;
+	var qActual = FA.concurrent.forEach( checkParams, list );
+	var tActual = FA.concurrent.forEach( () => true );
+	var sActual = FA.concurrent.forEach( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		assert.step( "forEach:delayedEach @ resolved" );
-		// pActual;
-		qActual = await qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	assert.step( "forEach:delayedEach @ resolved" );
+	// pActual;
+	qActual = await qActual;
+	tActual = await tActual;
+	sActual = await sActual;
 
 	assert.expect( 18 ); // note: 5 assertions + 10 `step(..)` calls
 	assert.strictEqual( rActual, rExpected, "concurrency check: result" );
@@ -462,8 +404,6 @@ QUnit.test( "concurrent.forEach()", async function test(assert){
 	assert.strictEqual( qActual, qExpected, "predicate params check" );
 	assert.strictEqual( tActual, tExpected, "array undefined" );
 	assert.strictEqual( sActual, sExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.forEach()", async function test(assert){
@@ -488,8 +428,6 @@ QUnit.test( "serial.forEach()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = undefined;
@@ -508,30 +446,22 @@ QUnit.test( "serial.forEach()", async function test(assert){
 	var tExpected = undefined;
 	var sExpected = undefined;
 
-	try {
-		assert.step( "forEach:delayedEach @ start" );
-		// 1. make calls that create promises
-		var rActual = FA.serial.forEach( delayedEach, list );
-		assert.step( "forEach:delayedEach @ end" );
-		// pActual;
-		var qActual = FA.serial.forEach( checkParams, list );
-		var tActual = FA.serial.forEach( () => true );
-		var sActual = FA.serial.forEach( () => true, [] );
+	assert.step( "forEach:delayedEach @ start" );
+	// 1. make calls that create promises
+	var rActual = FA.serial.forEach( delayedEach, list );
+	assert.step( "forEach:delayedEach @ end" );
+	// pActual;
+	var qActual = FA.serial.forEach( checkParams, list );
+	var tActual = FA.serial.forEach( () => true );
+	var sActual = FA.serial.forEach( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		assert.step( "forEach:delayedEach @ resolved" );
-		// pActual;
-		qActual = await qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	assert.step( "forEach:delayedEach @ resolved" );
+	// pActual;
+	qActual = await qActual;
+	tActual = await tActual;
+	sActual = await sActual;
 
 	assert.expect( 18 ); // note: 5 assertions + 10 `step(..)` calls
 	assert.strictEqual( rActual, rExpected, "serial check: result" );
@@ -539,8 +469,6 @@ QUnit.test( "serial.forEach()", async function test(assert){
 	assert.strictEqual( qActual, qExpected, "predicate params check" );
 	assert.strictEqual( tActual, tExpected, "array undefined" );
 	assert.strictEqual( sActual, sExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "concurrent.map()", async function test(assert){
@@ -571,8 +499,6 @@ QUnit.test( "concurrent.map()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,4,6,8,10];
@@ -588,32 +514,24 @@ QUnit.test( "concurrent.map()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.concurrent.map( delayedDouble, list );
-		assert.step( "map:delayedIncrement @ start" );
-		var pActual = FA.concurrent.map( delayedIncrement, list );
-		assert.step( "map:delayedIncrement @ end" );
-		// qActual;
-		var tActual = FA.concurrent.map( checkParams, list );
-		var sActual = FA.concurrent.map( () => true );
-		var uActual = FA.concurrent.map( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.concurrent.map( delayedDouble, list );
+	assert.step( "map:delayedIncrement @ start" );
+	var pActual = FA.concurrent.map( delayedIncrement, list );
+	assert.step( "map:delayedIncrement @ end" );
+	// qActual;
+	var tActual = FA.concurrent.map( checkParams, list );
+	var sActual = FA.concurrent.map( () => true );
+	var uActual = FA.concurrent.map( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "map:delayedIncrement @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "map:delayedIncrement @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -622,8 +540,6 @@ QUnit.test( "concurrent.map()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.map()", async function test(assert){
@@ -654,8 +570,6 @@ QUnit.test( "serial.map()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,4,6,8,10];
@@ -675,32 +589,24 @@ QUnit.test( "serial.map()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.map( delayedDouble, list );
-		assert.step( "map:delayedIncrement @ start" );
-		var pActual = FA.serial.map( delayedIncrement, list );
-		assert.step( "map:delayedIncrement @ end" );
-		// qActual;
-		var tActual = FA.serial.map( checkParams, list );
-		var sActual = FA.serial.map( () => true );
-		var uActual = FA.serial.map( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.map( delayedDouble, list );
+	assert.step( "map:delayedIncrement @ start" );
+	var pActual = FA.serial.map( delayedIncrement, list );
+	assert.step( "map:delayedIncrement @ end" );
+	// qActual;
+	var tActual = FA.serial.map( checkParams, list );
+	var sActual = FA.serial.map( () => true );
+	var uActual = FA.serial.map( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "map:delayedIncrement @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "map:delayedIncrement @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -709,8 +615,6 @@ QUnit.test( "serial.map()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "concurrent.flatMap()", async function test(assert){
@@ -741,8 +645,6 @@ QUnit.test( "concurrent.flatMap()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,3,4,6,6,9,8,12,10,15];
@@ -758,32 +660,24 @@ QUnit.test( "concurrent.flatMap()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.concurrent.flatMap( delayedDoubleTriple, list );
-		assert.step( "flatMap:delayedIncrementDecrement @ start" );
-		var pActual = FA.concurrent.flatMap( delayedIncrementDecrement, list );
-		assert.step( "flatMap:delayedIncrementDecrement @ end" );
-		// qActual;
-		var tActual = FA.concurrent.flatMap( checkParams, list );
-		var sActual = FA.concurrent.flatMap( () => true );
-		var uActual = FA.concurrent.flatMap( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.concurrent.flatMap( delayedDoubleTriple, list );
+	assert.step( "flatMap:delayedIncrementDecrement @ start" );
+	var pActual = FA.concurrent.flatMap( delayedIncrementDecrement, list );
+	assert.step( "flatMap:delayedIncrementDecrement @ end" );
+	// qActual;
+	var tActual = FA.concurrent.flatMap( checkParams, list );
+	var sActual = FA.concurrent.flatMap( () => true );
+	var uActual = FA.concurrent.flatMap( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "flatMap:delayedIncrementDecrement @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "flatMap:delayedIncrementDecrement @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -792,8 +686,6 @@ QUnit.test( "concurrent.flatMap()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.flatMap()", async function test(assert){
@@ -824,8 +716,6 @@ QUnit.test( "serial.flatMap()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [2,3,4,6,6,9,8,12,10,15];
@@ -845,32 +735,24 @@ QUnit.test( "serial.flatMap()", async function test(assert){
 	var sExpected = [];
 	var uExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.flatMap( delayedDoubleTriple, list );
-		assert.step( "flatMap:delayedIncrementDecrement @ start" );
-		var pActual = FA.serial.flatMap( delayedIncrementDecrement, list );
-		assert.step( "flatMap:delayedIncrementDecrement @ end" );
-		// qActual;
-		var tActual = FA.serial.flatMap( checkParams, list );
-		var sActual = FA.serial.flatMap( () => true );
-		var uActual = FA.serial.flatMap( () => true, [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.flatMap( delayedDoubleTriple, list );
+	assert.step( "flatMap:delayedIncrementDecrement @ start" );
+	var pActual = FA.serial.flatMap( delayedIncrementDecrement, list );
+	assert.step( "flatMap:delayedIncrementDecrement @ end" );
+	// qActual;
+	var tActual = FA.serial.flatMap( checkParams, list );
+	var sActual = FA.serial.flatMap( () => true );
+	var uActual = FA.serial.flatMap( () => true, [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "flatMap:delayedIncrementDecrement @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "flatMap:delayedIncrementDecrement @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.deepEqual( rActual, rExpected, "normal delay" );
@@ -879,8 +761,6 @@ QUnit.test( "serial.flatMap()", async function test(assert){
 	assert.deepEqual( tActual, tExpected, "predicate params check" );
 	assert.deepEqual( sActual, sExpected, "array undefined" );
 	assert.deepEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.reduce()", async function test(assert){
@@ -912,8 +792,6 @@ QUnit.test( "serial.reduce()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = ["1","2","3","4","5"];
 
 	var rExpected = "12345";
@@ -933,32 +811,24 @@ QUnit.test( "serial.reduce()", async function test(assert){
 	var sExpected = "";
 	var uExpected = "";
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.reduce( delayedConcat, "", list );
-		assert.step( "reduce:delayedHyphenate @ start" );
-		var pActual = FA.serial.reduce( delayedHyphenate, "0", list );
-		assert.step( "reduce:delayedHyphenate @ end" );
-		// qActual;
-		var tActual = FA.serial.reduce( checkParams, "", list );
-		var sActual = FA.serial.reduce( () => true, "" );
-		var uActual = FA.serial.reduce( () => true, "", [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.reduce( delayedConcat, "", list );
+	assert.step( "reduce:delayedHyphenate @ start" );
+	var pActual = FA.serial.reduce( delayedHyphenate, "0", list );
+	assert.step( "reduce:delayedHyphenate @ end" );
+	// qActual;
+	var tActual = FA.serial.reduce( checkParams, "", list );
+	var sActual = FA.serial.reduce( () => true, "" );
+	var uActual = FA.serial.reduce( () => true, "", [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "reduce:delayedHyphenate @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "reduce:delayedHyphenate @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.strictEqual( rActual, rExpected, "normal delay" );
@@ -967,8 +837,6 @@ QUnit.test( "serial.reduce()", async function test(assert){
 	assert.strictEqual( tActual, tExpected, "predicate params check" );
 	assert.strictEqual( sActual, sExpected, "array undefined" );
 	assert.strictEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.reduceRight()", async function test(assert){
@@ -1000,8 +868,6 @@ QUnit.test( "serial.reduceRight()", async function test(assert){
 		}
 	}
 
-	var done = assert.async();
-
 	var list = ["1","2","3","4","5"];
 
 	var rExpected = "54321";
@@ -1021,32 +887,24 @@ QUnit.test( "serial.reduceRight()", async function test(assert){
 	var sExpected = "";
 	var uExpected = "";
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.reduceRight( delayedConcat, "", list );
-		assert.step( "reduceRight:delayedHyphenate @ start" );
-		var pActual = FA.serial.reduceRight( delayedHyphenate, "6", list );
-		assert.step( "reduceRight:delayedHyphenate @ end" );
-		// qActual;
-		var tActual = FA.serial.reduceRight( checkParams, "", list );
-		var sActual = FA.serial.reduceRight( () => true, "" );
-		var uActual = FA.serial.reduceRight( () => true, "", [] );
+	// 1. make calls that create promises
+	var rActual = FA.serial.reduceRight( delayedConcat, "", list );
+	assert.step( "reduceRight:delayedHyphenate @ start" );
+	var pActual = FA.serial.reduceRight( delayedHyphenate, "6", list );
+	assert.step( "reduceRight:delayedHyphenate @ end" );
+	// qActual;
+	var tActual = FA.serial.reduceRight( checkParams, "", list );
+	var sActual = FA.serial.reduceRight( () => true, "" );
+	var uActual = FA.serial.reduceRight( () => true, "", [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		assert.step( "reduceRight:delayedHyphenate @ resolved" );
-		// qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	assert.step( "reduceRight:delayedHyphenate @ resolved" );
+	// qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
 	assert.strictEqual( rActual, rExpected, "normal delay" );
@@ -1055,8 +913,6 @@ QUnit.test( "serial.reduceRight()", async function test(assert){
 	assert.strictEqual( tActual, tExpected, "predicate params check" );
 	assert.strictEqual( sActual, sExpected, "array undefined" );
 	assert.strictEqual( uActual, uExpected, "array empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.pipe()", async function test(assert){
@@ -1083,8 +939,6 @@ QUnit.test( "serial.pipe()", async function test(assert){
 	function double(v) { return v * 2; }
 	function div3(v) { return v / 3; }
 
-	var done = assert.async();
-
 	var fns1 = [delayedIncrement,delayedDouble,delayedDiv3];
 	var fns2 = [delayedAdd,...fns1];
 	var fns3 = [increment,double,div3];
@@ -1095,27 +949,19 @@ QUnit.test( "serial.pipe()", async function test(assert){
 	var tExpected = 11;
 	var sExpected = 11;
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.pipe( fns1 )( 5 );
-		var pActual = FA.serial.pipe( fns2 )( 5, 3 );
-		var qActual = FA.serial.pipe( fns3 )( 11 );
-		var tActual = FA.serial.pipe()( 11 );
-		var sActual = FA.serial.pipe( [] )( 11 );
+	// 1. make calls that create promises
+	var rActual = FA.serial.pipe( fns1 )( 5 );
+	var pActual = FA.serial.pipe( fns2 )( 5, 3 );
+	var qActual = FA.serial.pipe( fns3 )( 11 );
+	var tActual = FA.serial.pipe()( 11 );
+	var sActual = FA.serial.pipe( [] )( 11 );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		qActual = await qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	qActual = await qActual;
+	tActual = await tActual;
+	sActual = await sActual;
 
 	assert.expect( 5 );
 	assert.strictEqual( rActual, rExpected, "normal unary pipe" );
@@ -1123,8 +969,6 @@ QUnit.test( "serial.pipe()", async function test(assert){
 	assert.strictEqual( qActual, qExpected, "all synchronous functions" );
 	assert.strictEqual( tActual, tExpected, "fns undefined" );
 	assert.strictEqual( sActual, sExpected, "fns empty" );
-
-	done();
 } );
 
 QUnit.test( "serial.compose()", async function test(assert){
@@ -1151,8 +995,6 @@ QUnit.test( "serial.compose()", async function test(assert){
 	function double(v) { return v * 2; }
 	function div3(v) { return v / 3; }
 
-	var done = assert.async();
-
 	var fns1 = [delayedDiv3,delayedDouble,delayedIncrement];
 	var fns2 = [...fns1,delayedAdd];
 	var fns3 = [div3,double,increment];
@@ -1163,27 +1005,19 @@ QUnit.test( "serial.compose()", async function test(assert){
 	var tExpected = 11;
 	var sExpected = 11;
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.serial.compose( fns1 )( 5 );
-		var pActual = FA.serial.compose( fns2 )( 5, 3 );
-		var qActual = FA.serial.compose( fns3 )( 11 );
-		var tActual = FA.serial.compose()( 11 );
-		var sActual = FA.serial.compose( [] )( 11 );
+	// 1. make calls that create promises
+	var rActual = FA.serial.compose( fns1 )( 5 );
+	var pActual = FA.serial.compose( fns2 )( 5, 3 );
+	var qActual = FA.serial.compose( fns3 )( 11 );
+	var tActual = FA.serial.compose()( 11 );
+	var sActual = FA.serial.compose( [] )( 11 );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		qActual = await qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	qActual = await qActual;
+	tActual = await tActual;
+	sActual = await sActual;
 
 	assert.expect( 5 );
 	assert.strictEqual( rActual, rExpected, "normal unary compose" );
@@ -1191,8 +1025,6 @@ QUnit.test( "serial.compose()", async function test(assert){
 	assert.strictEqual( qActual, qExpected, "all synchronous functions" );
 	assert.strictEqual( tActual, tExpected, "fns undefined" );
 	assert.strictEqual( sActual, sExpected, "fns empty" );
-
-	done();
 } );
 
 QUnit.test( "transducing", async function test(assert){
@@ -1222,8 +1054,6 @@ QUnit.test( "transducing", async function test(assert){
 			};
 		};
 	}
-
-	var done = assert.async();
 
 	var allAsyncTransducer = FA.serial.compose( [
 		FA.transducers.map( delayedIncrement ),
@@ -1255,43 +1085,35 @@ QUnit.test( "transducing", async function test(assert){
 	var dExpected = [];
 	var fExpected = [];
 
-	try {
-		// 1. make calls that create promises
-		var rActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [9,10,31] );
-		var pActual = FA.transducers.transduce( allSyncTransducer, sum, 0, [9,10,31] );
-		var qActual = FA.transducers.transduce( mixedTransducer, delayedSum, 0, [9,10,31] );
-		var tActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0 );
-		var sActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [] );
-		var uActual = FA.transducers.into( allAsyncTransducer, 0, [9,10,31] );
-		var hActual = FA.transducers.into( allAsyncTransducer, "", [9,10,31] );
-		var jActual = FA.transducers.into( asyncBoolTransducer, true, [true,true,true] );
-		var kActual = FA.transducers.transduce( asyncBoolTransducer, FA.transducers.booleanOr, false, [false,true,false] );
-		var mActual = FA.transducers.into( allAsyncTransducer, [], [9,10,31] );
-		var gActual = FA.transducers.into( asyncTrueTransducer, testObj, [1,2,3,4,5] );
-		var dActual = FA.transducers.into( allAsyncTransducer, [] );
-		var fActual = FA.transducers.into( allAsyncTransducer, [], [] );
+	// 1. make calls that create promises
+	var rActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [9,10,31] );
+	var pActual = FA.transducers.transduce( allSyncTransducer, sum, 0, [9,10,31] );
+	var qActual = FA.transducers.transduce( mixedTransducer, delayedSum, 0, [9,10,31] );
+	var tActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0 );
+	var sActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [] );
+	var uActual = FA.transducers.into( allAsyncTransducer, 0, [9,10,31] );
+	var hActual = FA.transducers.into( allAsyncTransducer, "", [9,10,31] );
+	var jActual = FA.transducers.into( asyncBoolTransducer, true, [true,true,true] );
+	var kActual = FA.transducers.transduce( asyncBoolTransducer, FA.transducers.booleanOr, false, [false,true,false] );
+	var mActual = FA.transducers.into( allAsyncTransducer, [], [9,10,31] );
+	var gActual = FA.transducers.into( asyncTrueTransducer, testObj, [1,2,3,4,5] );
+	var dActual = FA.transducers.into( allAsyncTransducer, [] );
+	var fActual = FA.transducers.into( allAsyncTransducer, [], [] );
 
-		// 2. await to unwrap the promises
-		rActual = await rActual;
-		pActual = await pActual;
-		qActual = await qActual;
-		tActual = await tActual;
-		sActual = await sActual;
-		uActual = await uActual;
-		hActual = await hActual;
-		jActual = await jActual;
-		kActual = await kActual;
-		mActual = await mActual;
-		gActual = await gActual;
-		dActual = await dActual;
-		fActual = await fActual;
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	// 2. await to unwrap the promises
+	rActual = await rActual;
+	pActual = await pActual;
+	qActual = await qActual;
+	tActual = await tActual;
+	sActual = await sActual;
+	uActual = await uActual;
+	hActual = await hActual;
+	jActual = await jActual;
+	kActual = await kActual;
+	mActual = await mActual;
+	gActual = await gActual;
+	dActual = await dActual;
+	fActual = await fActual;
 
 	assert.expect( 13 );
 	assert.strictEqual( rActual, rExpected, "transduce: all async transducing" );
@@ -1307,8 +1129,6 @@ QUnit.test( "transducing", async function test(assert){
 	assert.strictEqual( gActual, gExpected, "into: default" );
 	assert.deepEqual( dActual, dExpected, "into: array undefined" );
 	assert.deepEqual( fActual, fExpected, "into: array empty" );
-
-	done();
 } );
 
 QUnit.test( "processing function* generator", async function test(assert){
@@ -1327,8 +1147,6 @@ QUnit.test( "processing function* generator", async function test(assert){
 		yield Promise.reject( `nope: ${v}` );
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [
@@ -1336,32 +1154,22 @@ QUnit.test( "processing function* generator", async function test(assert){
 		"nope: 1", "nope: delay-throw", "nope: 2", "nope: delay-reject",
 	];
 
-	try {
-		await FA.concurrent.forEach( doStep, list );
+	await FA.concurrent.forEach( doStep, list );
 
-		try { await FA.concurrent.forEach( doThrow, [1] ); }
-		catch (err) { assert.step( err.toString() ); }
+	try { await FA.concurrent.forEach( doThrow, [1] ); }
+	catch (err) { assert.step( err.toString() ); }
 
-		try { await FA.concurrent.forEach( doThrow, ["delay-throw"] ); }
-		catch (err) { assert.step( err.toString() ); }
+	try { await FA.concurrent.forEach( doThrow, ["delay-throw"] ); }
+	catch (err) { assert.step( err.toString() ); }
 
-		try { await FA.concurrent.forEach( doReject, [2] ); }
-		catch (err) { assert.step( err.toString() ); }
+	try { await FA.concurrent.forEach( doReject, [2] ); }
+	catch (err) { assert.step( err.toString() ); }
 
-		try { await FA.concurrent.forEach( doReject, ["delay-reject"] ); }
-		catch (err) { assert.step( err.toString() ); }
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	try { await FA.concurrent.forEach( doReject, ["delay-reject"] ); }
+	catch (err) { assert.step( err.toString() ); }
 
 	assert.expect( 10 ); // note: 1 assertions + 9 `step(..)` calls
 	assert.verifySteps( rExpected, "generator steps" );
-
-	done();
 } );
 
 QUnit.test( "processing synchronous function", async function test(assert){
@@ -1377,8 +1185,6 @@ QUnit.test( "processing synchronous function", async function test(assert){
 		return Promise.reject( `nope: ${v}` );
 	}
 
-	var done = assert.async();
-
 	var list = [1,2,3,4,5];
 
 	var rExpected = [
@@ -1386,26 +1192,16 @@ QUnit.test( "processing synchronous function", async function test(assert){
 		"nope: 1", "nope: 2",
 	];
 
-	try {
-		await FA.concurrent.forEach( doStep, list );
+	await FA.concurrent.forEach( doStep, list );
 
-		try { await FA.concurrent.forEach( doThrow, [1] ); }
-		catch (err) { assert.step( err.toString() ); }
+	try { await FA.concurrent.forEach( doThrow, [1] ); }
+	catch (err) { assert.step( err.toString() ); }
 
-		try { await FA.concurrent.forEach( doReject, [2] ); }
-		catch (err) { assert.step( err.toString() ); }
-	}
-	catch (err) {
-		assert.expect( 1 );
-		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
-		done();
-		return;
-	}
+	try { await FA.concurrent.forEach( doReject, [2] ); }
+	catch (err) { assert.step( err.toString() ); }
 
 	assert.expect( 8 ); // note: 1 assertions + 7 `step(..)` calls
 	assert.verifySteps( rExpected, "sync function steps" );
-
-	done();
 } );
 
 
