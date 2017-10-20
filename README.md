@@ -6,7 +6,9 @@
 [![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc) that are capable of handling `async function` functions and `function*` generators. **fasy** supports both concurrent and serial iterations.
+**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as composition and transducing.
+
+What's different from other FP libraries is that its methods are capable of operating asynchronously, via `async function` functions and/or `function*` generators. **fasy** supports both concurrent and serial asynchrony.
 
 ## Environment Support
 
@@ -249,6 +251,7 @@ But what about the second step of the reduction, where `fn(ret)` is effectively 
 
 * See [Concurrent API](docs/concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
 * See [Serial API](docs/serial-API.md) for documenation on the methods in the `FA.serial.*` namespace.
+* See [Transducers API](docs/transducers-API.md) for documentation on the methods in the `FA.transducers.*` namespace.
 
 ## Builds
 

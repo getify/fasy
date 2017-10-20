@@ -26,6 +26,22 @@ QUnit.test( "serial: API methods", function test(assert){
 	assert.ok( _isFunction( FA.serial.compose ), "compose()" );
 } );
 
+QUnit.test( "transducers: API methods", function test(assert){
+	assert.expect( 11 );
+
+	assert.ok( _hasProp( FA, "transducers" ), "FA.transducers" ),
+	assert.ok( _isFunction( FA.transducers.filter ), "filter()" );
+	assert.ok( _isFunction( FA.transducers.map ), "map()" );
+	assert.ok( _isFunction( FA.transducers.transduce ), "transduce()" );
+	assert.ok( _isFunction( FA.transducers.into ), "into()" );
+	assert.ok( _isFunction( FA.transducers.string ), "string()" );
+	assert.ok( _isFunction( FA.transducers.number ), "number()" );
+	assert.ok( _isFunction( FA.transducers.booleanAnd ), "booleanAnd()" );
+	assert.ok( _isFunction( FA.transducers.booleanOr ), "booleanOr()" );
+	assert.ok( _isFunction( FA.transducers.array ), "array()" );
+	assert.ok( _isFunction( FA.transducers.default ), "default()" );
+} );
+
 QUnit.test( "API method aliases", function test(assert){
 	assert.expect( 6 );
 
@@ -945,12 +961,12 @@ QUnit.test( "serial.reduce()", async function test(assert){
 	}
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
-	assert.deepEqual( rActual, rExpected, "normal delay" );
-	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.strictEqual( rActual, rExpected, "normal delay" );
+	assert.strictEqual( pActual, pExpected, "serial check: result" );
 	assert.verifySteps( qExpected, "serial check: steps" );
-	assert.deepEqual( tActual, tExpected, "predicate params check" );
-	assert.deepEqual( sActual, sExpected, "array undefined" );
-	assert.deepEqual( uActual, uExpected, "array empty" );
+	assert.strictEqual( tActual, tExpected, "predicate params check" );
+	assert.strictEqual( sActual, sExpected, "array undefined" );
+	assert.strictEqual( uActual, uExpected, "array empty" );
 
 	done();
 } );
@@ -1033,12 +1049,12 @@ QUnit.test( "serial.reduceRight()", async function test(assert){
 	}
 
 	assert.expect( 19 ); // note: 6 assertions + 13 `step(..)` calls
-	assert.deepEqual( rActual, rExpected, "normal delay" );
-	assert.deepEqual( pActual, pExpected, "serial check: result" );
+	assert.strictEqual( rActual, rExpected, "normal delay" );
+	assert.strictEqual( pActual, pExpected, "serial check: result" );
 	assert.verifySteps( qExpected, "serial check: steps" );
-	assert.deepEqual( tActual, tExpected, "predicate params check" );
-	assert.deepEqual( sActual, sExpected, "array undefined" );
-	assert.deepEqual( uActual, uExpected, "array empty" );
+	assert.strictEqual( tActual, tExpected, "predicate params check" );
+	assert.strictEqual( sActual, sExpected, "array undefined" );
+	assert.strictEqual( uActual, uExpected, "array empty" );
 
 	done();
 } );
@@ -1102,11 +1118,11 @@ QUnit.test( "serial.pipe()", async function test(assert){
 	}
 
 	assert.expect( 5 );
-	assert.deepEqual( rActual, rExpected, "normal unary pipe" );
-	assert.deepEqual( pActual, pExpected, "multiple arguments to first function" );
-	assert.deepEqual( qActual, qExpected, "all synchronous functions" );
-	assert.deepEqual( tActual, tExpected, "fns undefined" );
-	assert.deepEqual( sActual, sExpected, "fns empty" );
+	assert.strictEqual( rActual, rExpected, "normal unary pipe" );
+	assert.strictEqual( pActual, pExpected, "multiple arguments to first function" );
+	assert.strictEqual( qActual, qExpected, "all synchronous functions" );
+	assert.strictEqual( tActual, tExpected, "fns undefined" );
+	assert.strictEqual( sActual, sExpected, "fns empty" );
 
 	done();
 } );
@@ -1170,11 +1186,127 @@ QUnit.test( "serial.compose()", async function test(assert){
 	}
 
 	assert.expect( 5 );
-	assert.deepEqual( rActual, rExpected, "normal unary compose" );
-	assert.deepEqual( pActual, pExpected, "multiple arguments to first function" );
-	assert.deepEqual( qActual, qExpected, "all synchronous functions" );
-	assert.deepEqual( tActual, tExpected, "fns undefined" );
-	assert.deepEqual( sActual, sExpected, "fns empty" );
+	assert.strictEqual( rActual, rExpected, "normal unary compose" );
+	assert.strictEqual( pActual, pExpected, "multiple arguments to first function" );
+	assert.strictEqual( qActual, qExpected, "all synchronous functions" );
+	assert.strictEqual( tActual, tExpected, "fns undefined" );
+	assert.strictEqual( sActual, sExpected, "fns empty" );
+
+	done();
+} );
+
+QUnit.test( "transducing", async function test(assert){
+	async function delayedIncrement(v) {
+		await _delay( 10 );
+		return v + 1;
+	}
+
+	async function delayedEven(v) {
+		await _delay( 10 );
+		return v % 2 == 0;
+	}
+
+	async function delayedSum(x,y) {
+		await _delay( 10 );
+		return x + y;
+	}
+
+	function increment(v) { return v + 1; }
+	function even(v) { return v % 2 == 0; }
+	function sum(x,y) { return x + y; }
+
+	function syncMapReducer(mapperFn) {
+		return function curried(combinationFn){
+			return function reducer(acc,v,idx,arr){
+				return combinationFn(acc,mapperFn(v));
+			};
+		};
+	}
+
+	var done = assert.async();
+
+	var allAsyncTransducer = FA.serial.compose( [
+		FA.transducers.map( delayedIncrement ),
+		FA.transducers.filter( delayedEven ),
+	] );
+	var allSyncTransducer = FA.serial.compose( [
+		FA.transducers.map( increment ),
+		FA.transducers.filter( even ),
+	] );
+	var mixedTransducer = FA.serial.compose( [
+		syncMapReducer( increment ),
+		FA.transducers.filter( delayedEven ),
+	] );
+	var asyncBoolTransducer = FA.transducers.map( Boolean );
+	var asyncTrueTransducer = FA.transducers.filter( async function alwaysTrue(){ await _delay( 10 ); return true; } );
+	var testObj = { foo: 1 };
+
+	var rExpected = 42;
+	var pExpected = 42;
+	var qExpected = 42;
+	var tExpected = 0;
+	var sExpected = 0;
+	var uExpected = 42;
+	var hExpected = "1032";
+	var jExpected = true;
+	var kExpected = true;
+	var mExpected = [10,32];
+	var gExpected = testObj;
+	var dExpected = [];
+	var fExpected = [];
+
+	try {
+		// 1. make calls that create promises
+		var rActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [9,10,31] );
+		var pActual = FA.transducers.transduce( allSyncTransducer, sum, 0, [9,10,31] );
+		var qActual = FA.transducers.transduce( mixedTransducer, delayedSum, 0, [9,10,31] );
+		var tActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0 );
+		var sActual = FA.transducers.transduce( allAsyncTransducer, delayedSum, 0, [] );
+		var uActual = FA.transducers.into( allAsyncTransducer, 0, [9,10,31] );
+		var hActual = FA.transducers.into( allAsyncTransducer, "", [9,10,31] );
+		var jActual = FA.transducers.into( asyncBoolTransducer, true, [true,true,true] );
+		var kActual = FA.transducers.transduce( asyncBoolTransducer, FA.transducers.booleanOr, false, [false,true,false] );
+		var mActual = FA.transducers.into( allAsyncTransducer, [], [9,10,31] );
+		var gActual = FA.transducers.into( asyncTrueTransducer, testObj, [1,2,3,4,5] );
+		var dActual = FA.transducers.into( allAsyncTransducer, [] );
+		var fActual = FA.transducers.into( allAsyncTransducer, [], [] );
+
+		// 2. await to unwrap the promises
+		rActual = await rActual;
+		pActual = await pActual;
+		qActual = await qActual;
+		tActual = await tActual;
+		sActual = await sActual;
+		uActual = await uActual;
+		hActual = await hActual;
+		jActual = await jActual;
+		kActual = await kActual;
+		mActual = await mActual;
+		gActual = await gActual;
+		dActual = await dActual;
+		fActual = await fActual;
+	}
+	catch (err) {
+		assert.expect( 1 );
+		assert.pushResult( { result: false, message: (err.stack ? err.stack : err.toString()) } );
+		done();
+		return;
+	}
+
+	assert.expect( 13 );
+	assert.strictEqual( rActual, rExpected, "transduce: all async transducing" );
+	assert.strictEqual( pActual, pExpected, "transduce: all sync transducing" );
+	assert.strictEqual( qActual, qExpected, "transduce: mixed transducing" );
+	assert.strictEqual( tActual, tExpected, "transduce: array undefined" );
+	assert.strictEqual( sActual, sExpected, "transduce: array empty" );
+	assert.strictEqual( uActual, uExpected, "into: number" );
+	assert.strictEqual( hActual, hExpected, "into: string" );
+	assert.strictEqual( jActual, jExpected, "into: booleanAnd" );
+	assert.strictEqual( kActual, kExpected, "transduce: booleanOr" );
+	assert.deepEqual( mActual, mExpected, "into: array" );
+	assert.strictEqual( gActual, gExpected, "into: default" );
+	assert.deepEqual( dActual, dExpected, "into: array undefined" );
+	assert.deepEqual( fActual, fExpected, "into: array empty" );
 
 	done();
 } );

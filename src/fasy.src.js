@@ -140,9 +140,48 @@
 		}
 	};
 
+	var transducers = {
+		filter(predicateFn) {
+			return function curried(combinationFn){
+				return async function reducer(acc,v,idx,arr){
+					if (await predicateFn(v,idx,arr)) return combinationFn(acc,v);
+					return acc;
+				};
+			};
+		},
+		map(mapperFn) {
+			return function curried(combinationFn){
+				return async function reducer(acc,v,idx,arr){
+					return combinationFn(acc,await mapperFn(v,idx,arr));
+				};
+			};
+		},
+		async transduce(transducer,combinationFn,initialValue,arr = []) {
+			var reducer = await transducer(combinationFn);
+			return serial.reduce(reducer,initialValue,arr);
+		},
+		async into(transducer,initialValue,arr = []) {
+			var combinationFn =
+				typeof initialValue == "string" ? transducers.string :
+				typeof initialValue == "number" ? transducers.number :
+				typeof initialValue == "boolean" ? transducers.booleanAnd :
+				Array.isArray( initialValue ) ? transducers.array :
+				transducers.default;
+
+			return transducers.transduce(transducer,combinationFn,initialValue,arr);
+		},
+		string(acc,v) { return acc + v; },
+		number(acc,v) { return acc + v; },
+		booleanAnd(acc,v) { return acc && v; },
+		booleanOr(acc,v) { return acc || v; },
+		array(acc,v) { acc.push(v); return acc; },
+		default(acc,v) { return acc; }
+	};
+
 	var publicAPI = {
 		concurrent,
 		serial,
+		transducers,
 	};
 
 	// method convenience aliases
