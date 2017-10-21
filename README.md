@@ -55,7 +55,7 @@ FA.serial.map(
 .then( userOrders => console.log( userOrders ) );
 ```
 
-## Overview
+## Background/Motivation
 
 Functional helpers like `map(..)` / `filter(..)` / `reduce(..)` are quite handy for iterating through a list of operations:
 
@@ -125,10 +125,13 @@ async function getAllOrders() {
 
 Unfortunately, aside from being more verbose, this "fix" is fairly limited. It really only works for `map(..)` and not for something like `filter(..)`. Also, as that fix assumes concurrency, there's no good way to do the FP-style iterations serially.
 
-With **fasy**, you can do either concurrent or serial iterations of asynchronous operations:
+## Overview
+
+With **fasy**, you can do either concurrent or serial iterations of asynchronous operations.
+
+For example, consider this [`concurrent.map(..)`](docs/concurrent-API.md#concurrentmap) operation:
 
 ```js
-// concurrent iteration:
 async function getAllOrders() {
     var users = [ "bzmau", "getify", "frankz" ];
 
@@ -142,8 +145,11 @@ async function getAllOrders() {
 
     console.log( userOrders );
 }
+```
 
-// serial iteration:
+Now let's look at the same task, but with a [`serial.map(..)`](docs/serial-API.md#serialmap) operation:
+
+```js
 async function getAllOrders() {
     var users = [ "bzmau", "getify", "frankz" ];
 
@@ -175,7 +181,7 @@ async function getActiveUsers() {
 }
 ```
 
-The equivalent of this would be much more verbose/awkward than just a simple `Promise.all(..)` "fix" as above. And of course, you can also use `serial.filter(..)` to process the operations serially if necessary.
+The equivalent of this would be much more verbose/awkward than just a simple `Promise.all(..)` "fix" as described earlier. And of course, you can also use [`serial.filter(..)`](docs/serial-API.md#serialfilter) to process the operations serially if necessary.
 
 ### Serial Asynchrony
 
@@ -203,7 +209,7 @@ getOrders( "getify" )
 
 **Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values. [More on that](#syncasync-normalization) below.
 
-The async composition being shown here is only for illustration purposes. **fasy** provides [`serial.compose(..)`](docs/serial-API.md#serialcompose) and [`serial.pipe(..)`](docs/serial-API.md#serialpipe) for performing async compositions; these methods should be preferred over doing it manually yourself.
+The async composition being shown here is only for illustration purposes. **fasy** provides [`serial.compose(..)`](docs/serial-API.md#serialcompose) and [`serial.pipe(..)`](docs/serial-API.md#serialpipe) for performing async compositions ([see below](#async-composition)); these methods should be preferred over doing it manually yourself.
 
 By the way, instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
 
@@ -249,7 +255,88 @@ But what about the second step of the reduction, where `fn(ret)` is effectively 
 
 **fasy** uses promises internally to normalize both immediate and future values, so the iteration behavior is consistent regardless.
 
-## API
+### Async Composition
+
+In addition to traditional iterations like `map(..)` and `filter(..)`, **fasy** also supports serial-async composition, which is fundamentally a serial-async reduction under the covers.
+
+Consider:
+
+```js
+async function getFileContents(filename) {
+    var fileHandle = await fileOpen( filename );
+    return fileRead( fileHandle );
+}
+```
+
+That is fine, but it can also be recognized as an async composition. We can use [`serial.pipe(..)`](docs/serial-API.md#serialpipe)) to define it in point-free style:
+
+```js
+var getFileContents = FA.serial.pipe( [
+    fileOpen,
+    fileRead
+] );
+```
+
+All FP libraries support `pipe(..)` and `compose(..)` style composition (sometimes referred to by other names, like `flow(..)` and `flowRight(..)`, respectively). Where **fasy** is different is that each step in the composition can be asynchronous, and the library keeps things operating together!
+
+### Transducing
+
+Transducing is another example of FP iteration; it's basically a combination of composition and list/data-structure reduction; multiple `map(..)` and `filter(..)` calls can be composed by representing them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **fasy** supports serial-async reduction, it also supports serial-async transducing as well!
+
+Consider:
+
+```js
+async function getFileContents(filename) {
+    var exists = await fileExists( filename );
+    if (exists) {
+        var fileHandle = await fileOpen( filename );
+        return fileRead( fileHandle );
+    }
+}
+```
+
+Since there's essentially a `filter(..)` and two `map(..)`s happening here, we could model these operations as:
+
+```js
+async function getFileContents(filename) {
+    return FA.serial.map(
+        fileRead,
+        FA.serial.map(
+            fileOpen,
+            FA.serial.filter(
+                fileExists,
+                [ filename ]
+            )
+        )
+    );
+}
+```
+
+Not only is this a bit more verbose, but if we later wanted to be able to get/combine contents from lots of files, we'd be iterating over a list three times (once each for each of the `filter(..)` and two `map(..)` calls). That's not just a penalty in terms of more CPU cycles, but it also creates an intermediate array in between each step, which is then thrown away, so memory churn could be a concern.
+
+This is where transducing shines! If we transform the `filter(..)` and `map(..)` calls into a composition-compatible form (reducers), we can then combine them into one reducer; that means we can do all the steps at once! So, we'll only have to process through the list once, and we won't need to create/throw away any intermediate arrays.
+
+Though this obviously can work for any number of values in a list, we'll keep our running example simple and just process one file:
+
+```js
+async function getFileContents(filename) {
+    var transducer = FA.serial.compose( [
+        FA.transducers.filter( fileExists ),
+        FA.transducers.map( fileOpen ),
+        FA.transducers.map( fileRead )
+    ] );
+
+    return FA.transducers.into(
+        transducer,
+        "", // empty string as initial value
+        [ filename ]
+    );
+}
+```
+
+**Note:** For simplicity, we used the [`transducers.into(..)`](docs/transducers-API.md#transducersinto) convenience method, but the same task could have been done with the more general [`transducers.transduce(..)`](docs/transducers-API.md#transducerstransduce) method.
+
+## API Documentation
 
 * See [Concurrent API](docs/concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
 * See [Serial API](docs/serial-API.md) for documenation on the methods in the `FA.serial.*` namespace.
