@@ -279,7 +279,7 @@ var getFileContents = FA.serial.pipe( [
 
 All FP libraries support `pipe(..)` and `compose(..)` style composition (sometimes referred to by other names, like `flow(..)` and `flowRight(..)`, respectively). Where **fasy** is different is that each step in the composition can be asynchronous, and the library keeps things operating together!
 
-### Transducing
+### Async Transducing
 
 Transducing is another example of FP iteration; it's basically a combination of composition and list/data-structure reduction; multiple `map(..)` and `filter(..)` calls can be composed by representing them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **fasy** supports serial-async reduction, it also supports serial-async transducing as well!
 
