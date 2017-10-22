@@ -257,7 +257,7 @@ But what about the second step of the reduction, where `fn(ret)` is effectively 
 
 ### Async Composition
 
-In addition to traditional iterations like `map(..)` and `filter(..)`, **fasy** also supports serial-async composition, which is fundamentally a serial-async reduction under the covers.
+In addition to traditional iterations like `map(..)` and `filter(..)`, **fasy** also supports serial-async composition, which is really just a serial-async reduction under the covers.
 
 Consider:
 
@@ -268,7 +268,7 @@ async function getFileContents(filename) {
 }
 ```
 
-That is fine, but it can also be recognized as an async composition. We can use [`serial.pipe(..)`](docs/serial-API.md#serialpipe)) to define it in point-free style:
+That is fine, but it can also be recognized as an async composition. We can use [`serial.pipe(..)`](docs/serial-API.md#serialpipe) to define it in point-free style:
 
 ```js
 var getFileContents = FA.serial.pipe( [
@@ -277,11 +277,11 @@ var getFileContents = FA.serial.pipe( [
 ] );
 ```
 
-All FP libraries support `pipe(..)` and `compose(..)` style composition (sometimes referred to by other names, like `flow(..)` and `flowRight(..)`, respectively). Where **fasy** is different is that each step in the composition can be asynchronous, and the library keeps things operating together!
+FP libraries traditionally provide synchronous composition with `pipe(..)` and `compose(..)` (sometimes referred to by other names, like `flow(..)` and `flowRight(..)`, respectively). But asynchronous composition can be quite helpful!
 
 ### Async Transducing
 
-Transducing is another example of FP iteration; it's basically a combination of composition and list/data-structure reduction; multiple `map(..)` and `filter(..)` calls can be composed by representing them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **fasy** supports serial-async reduction, it also supports serial-async transducing as well!
+Transducing is another flavor of FP iteration; it's a combination of composition and list/data-structure reduction. Multiple `map(..)` and `filter(..)` calls can be composed by transforming them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **fasy** has serial-async reduction, you can do serial-async transducing as well!
 
 Consider:
 
@@ -295,7 +295,7 @@ async function getFileContents(filename) {
 }
 ```
 
-Since there's essentially a `filter(..)` and two `map(..)`s happening here, we could model these operations as:
+We could instead model these operations FP-style as a `filter(..)` followed by two `map(..)`s:
 
 ```js
 async function getFileContents(filename) {
@@ -312,11 +312,11 @@ async function getFileContents(filename) {
 }
 ```
 
-Not only is this a bit more verbose, but if we later wanted to be able to get/combine contents from lots of files, we'd be iterating over a list three times (once each for each of the `filter(..)` and two `map(..)` calls). That's not just a penalty in terms of more CPU cycles, but it also creates an intermediate array in between each step, which is then thrown away, so memory churn could be a concern.
+Not only is this a bit more verbose, but if we later wanted to be able to get/combine contents from many files, we'd be iterating over a list three times (once each for the `filter(..)` and two `map(..)` calls). That extra iteration is not just a penalty in terms of more CPU cycles, but it also creates an intermediate array in between each step, which is then thrown away, so memory churn becomes a concern.
 
-This is where transducing shines! If we transform the `filter(..)` and `map(..)` calls into a composition-compatible form (reducers), we can then combine them into one reducer; that means we can do all the steps at once! So, we'll only have to process through the list once, and we won't need to create/throw away any intermediate arrays.
+This is where transducing shines! If we transform the `filter(..)` and `map(..)` calls into a composition-compatible form (reducers), we can then combine them into one reducer; that means we can do all the steps at once! So, we'll only have to iterate through the list once, and we won't need to create and throw away any intermediate arrays.
 
-Though this obviously can work for any number of values in a list, we'll keep our running example simple and just process one file:
+While this obviously can work for any number of values in a list, we'll keep our running example simple and just process one file:
 
 ```js
 async function getFileContents(filename) {
@@ -334,7 +334,7 @@ async function getFileContents(filename) {
 }
 ```
 
-**Note:** For simplicity, we used the [`transducers.into(..)`](docs/transducers-API.md#transducersinto) convenience method, but the same task could have been done with the more general [`transducers.transduce(..)`](docs/transducers-API.md#transducerstransduce) method.
+**Note:** For simplicity, we used the [`transducers.into(..)`](docs/transducers-API.md#transducersinto) convenience method, but the same task could also have used the more general [`transducers.transduce(..)`](docs/transducers-API.md#transducerstransduce) method.
 
 ## API Documentation
 
