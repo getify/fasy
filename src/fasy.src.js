@@ -28,7 +28,7 @@
 				)
 				// note: normal array#reduce
 				.reduce(function reducer(ret,[v,keep]){
-					if (keep) return ret.concat(v);
+					if (keep) return [...ret,v];
 					return ret;
 				},[]);
 		},
