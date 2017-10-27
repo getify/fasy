@@ -7,10 +7,10 @@
 
 	var concurrent = {
 		async forEach(eachFn,arr = []) {
-			await Promise.all(arr.map(_run(eachFn)));
+			await Promise.all(arr.map(_runner(eachFn)));
 		},
 		async map(mapperFn,arr = []) {
-			return Promise.all(arr.map(_run(mapperFn)));
+			return Promise.all(arr.map(_runner(mapperFn)));
 		},
 		async flatMap(mapperFn,arr = []) {
 			return (
@@ -20,7 +20,7 @@
 				.reduce(function reducer(ret,v){ return ret.concat(v); },[]);
 		},
 		async filterIn(predicateFn,arr = []) {
-			predicateFn = _run(predicateFn);
+			predicateFn = _runner(predicateFn);
 			return (
 					await Promise.all(arr.map(async function mapper(v,idx,arr) {
 						return [v,await predicateFn(v,idx,arr)];
@@ -33,7 +33,7 @@
 				},[]);
 		},
 		async filterOut(predicateFn,arr = []) {
-			predicateFn = _run(predicateFn);
+			predicateFn = _runner(predicateFn);
 			return concurrent.filterIn(async function filterer(v,idx,arr){
 				return !(await predicateFn(v,idx,arr));
 			},arr);
@@ -42,13 +42,13 @@
 
 	var serial = {
 		async forEach(eachFn,arr = []) {
-			eachFn = _run(eachFn);
+			eachFn = _runner(eachFn);
 			for (let [idx,v] of arr.entries()) {
 				await eachFn(v,idx,arr);
 			}
 		},
 		async map(mapperFn,arr = []) {
-			mapperFn = _run(mapperFn);
+			mapperFn = _runner(mapperFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
 				ret.push(await mapperFn(v,idx,arr));
@@ -56,6 +56,7 @@
 			return ret;
 		},
 		async flatMap(mapperFn,arr = []) {
+			mapperFn = _runner(mapperFn);
 			var ret = [];
 			await serial.forEach(async function eacher(v,idx,arr){
 				ret = ret.concat(await mapperFn(v,idx,arr));
@@ -63,7 +64,7 @@
 			return ret;
 		},
 		async filterIn(predicateFn,arr = []) {
-			predicateFn = _run(predicateFn);
+			predicateFn = _runner(predicateFn);
 			var ret = [];
 			for (let [idx,v] of arr.entries()) {
 				if (await predicateFn(v,idx,arr)) {
@@ -73,13 +74,13 @@
 			return ret;
 		},
 		async filterOut(predicateFn,arr = []) {
-			predicateFn = _run(predicateFn);
+			predicateFn = _runner(predicateFn);
 			return serial.filterIn(async function filterer(v,idx,arr){
 				return !(await predicateFn(v,idx,arr));
 			},arr);
 		},
 		async reduce(reducerFn,initial,arr = []) {
-			reducerFn = _run(reducerFn);
+			reducerFn = _runner(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of arr.entries()) {
 				ret = await reducerFn(ret,v,idx,arr);
@@ -87,7 +88,7 @@
 			return ret;
 		},
 		async reduceRight(reducerFn,initial,arr = []) {
-			reducerFn = _run(reducerFn);
+			reducerFn = _runner(reducerFn);
 			var ret = initial;
 			for (let [idx,v] of [...arr.entries()].reverse()) {
 				ret = await reducerFn(ret,v,idx,arr);
@@ -144,7 +145,7 @@
 		filter(predicateFn) {
 			return function curried(combinationFn){
 				return async function reducer(acc,v,idx,arr){
-					if (await predicateFn(v,idx,arr)) return combinationFn(acc,v);
+					if (await _runner(predicateFn)(v,idx,arr)) return _runner(combinationFn)(acc,v);
 					return acc;
 				};
 			};
@@ -152,7 +153,7 @@
 		map(mapperFn) {
 			return function curried(combinationFn){
 				return async function reducer(acc,v,idx,arr){
-					return combinationFn(acc,await mapperFn(v,idx,arr));
+					return _runner(combinationFn)(acc,await _runner(mapperFn)(v,idx,arr));
 				};
 			};
 		},
@@ -202,7 +203,7 @@
 		publicAPI.serial[aliasName] = publicAPI.serial[origName];
 	}
 
-	function _run(fn) {
+	function _runner(fn) {
 		return async function getArgs(...args) {
 			var ret = fn(...args);
 

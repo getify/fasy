@@ -1,6 +1,6 @@
 {
 	"name": "fasy",
-	"version": "4.0.6",
+	"version": "5.0.0",
 	"description": "FP iterator helpers that are async/generator aware",
 	"main": "./dist/fasy.js",
 	"scripts": {
