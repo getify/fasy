@@ -23,27 +23,27 @@ Each step of the composition will be processed right-to-left, serially (aka "seq
 **Note:** As with all **fasy** methods, the functions in `fns` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fns`: the list of functions to compose
+	- `fns`: the list of functions to compose
 
 * **Returns:** *function* (that returns *Promise<any>*)
 
 * **Example:**
 
-    ```js
-    // define composed function
-    var prepareImg = FA.serial.compose( [makeImgDOMElem,prefetchImage,imgURL] );
+	```js
+	// define composed function
+	var prepareImg = FA.serial.compose( [makeImgDOMElem,prefetchImage,imgURL] );
 
-    renderImage( "image1" );
+	renderImage( "image1" );
 
-    async function renderImage(url) {
-        var imgElem = await prepareImg( url, "png" );
-        document.body.appendChild( imgElem );
-    }
+	async function renderImage(url) {
+		var imgElem = await prepareImg( url, "png" );
+		document.body.appendChild( imgElem );
+	}
 
-    function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
-    async function prefetchImage(url) { /* .. */ }
-    function makeImgDOMElem(img) { /* .. */ }
-    ```
+	function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
+	async function prefetchImage(url) { /* .. */ }
+	function makeImgDOMElem(img) { /* .. */ }
+	```
 
 * **See Also:** [`serial.pipe(..)`](#serialpipe)
 
@@ -62,52 +62,52 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#filter(..)`
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the predicate function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce `true` for inclusion of the item or `false` for exclusion of the item
-    - `arr`: list to iterate over
+	- `fn`: the predicate function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce `true` for inclusion of the item or `false` for exclusion of the item
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<array>*
 
 * **Example:**
 
-    ```js
-    pickImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	pickImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function pickImages(imageUrls) {
-        var imgCount = 0;
-        var avgBrightness = 0;
+	async function pickImages(imageUrls) {
+		var imgCount = 0;
+		var avgBrightness = 0;
 
-        var pickedImages = await FA.serial.filterIn(
-            async function checkImg(url) {
-                if (imgCount < 2 || avgBrightness < 20) {
-                    var img = await preloadImg( url );
-                    var imgBrightness = pixelBrightness( img );
-                    var newAvgBrightness =
-                        ((avgBrightness * imgCount) + imgBrightness) /
-                        (imgCount + 1);
+		var pickedImages = await FA.serial.filterIn(
+			async function checkImg(url) {
+				if (imgCount < 2 || avgBrightness < 20) {
+					var img = await preloadImg( url );
+					var imgBrightness = pixelBrightness( img );
+					var newAvgBrightness =
+						((avgBrightness * imgCount) + imgBrightness) /
+						(imgCount + 1);
 
-                    if (newAvgBrightness < 50) {
-                        avgBrightness = newAvgBrightness;
-                        imgCount++;
-                        return true;
-                    }
-                }
+					if (newAvgBrightness < 50) {
+						avgBrightness = newAvgBrightness;
+						imgCount++;
+						return true;
+					}
+				}
 
-                return false;
-            },
-            imageUrls
-        );
+				return false;
+			},
+			imageUrls
+		);
 
-        // standard built-in array#forEach
-        pickedImages.forEach( url => console.log( `Picked image: ${url}` ) );
-    }
+		// standard built-in array#forEach
+		pickedImages.forEach( url => console.log( `Picked image: ${url}` ) );
+	}
 
-    async function preloadImg(url) { /*..*/ }
-    function pixelBrightness(img) { /*..*/ }
-    ```
+	async function preloadImg(url) { /*..*/ }
+	function pixelBrightness(img) { /*..*/ }
+	```
 
 * **Aliases:** `serial.filter(..)`
 
@@ -128,52 +128,52 @@ This is kind of like the asynchronous equivalent of JavaScript's built-in [`Arra
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the predicate function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce `true` for exclusion of the item or `false` for retention of the item
-    - `arr`: list to iterate over
+	- `fn`: the predicate function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce `true` for exclusion of the item or `false` for retention of the item
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<array>*
 
 * **Example:**
 
-    ```js
-    pickImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	pickImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function pickImages(imageUrls) {
-        var imgCount = 0;
-        var avgBrightness = 0;
+	async function pickImages(imageUrls) {
+		var imgCount = 0;
+		var avgBrightness = 0;
 
-        var pickedImages = await FA.serial.filterOut(
-            async function checkImg(url) {
-                if (imgCount < 2 || avgBrightness < 20) {
-                    var img = await preloadImg( url );
-                    var imgBrightness = pixelBrightness( img );
-                    var newAvgBrightness =
-                        ((avgBrightness * imgCount) + imgBrightness) /
-                        (imgCount + 1);
+		var pickedImages = await FA.serial.filterOut(
+			async function checkImg(url) {
+				if (imgCount < 2 || avgBrightness < 20) {
+					var img = await preloadImg( url );
+					var imgBrightness = pixelBrightness( img );
+					var newAvgBrightness =
+						((avgBrightness * imgCount) + imgBrightness) /
+						(imgCount + 1);
 
-                    if (newAvgBrightness < 50) {
-                        avgBrightness = newAvgBrightness;
-                        imgCount++;
-                        return false;
-                    }
-                }
+					if (newAvgBrightness < 50) {
+						avgBrightness = newAvgBrightness;
+						imgCount++;
+						return false;
+					}
+				}
 
-                return true;
-            },
-            imageUrls
-        );
+				return true;
+			},
+			imageUrls
+		);
 
-        // standard built-in array#forEach
-        pickedImages.forEach( url => console.log( `Picked image: ${url}` ) );
-    }
+		// standard built-in array#forEach
+		pickedImages.forEach( url => console.log( `Picked image: ${url}` ) );
+	}
 
-    async function preloadImg(url) { /*..*/ }
-    function pixelBrightness(img) { /*..*/ }
-    ```
+	async function preloadImg(url) { /*..*/ }
+	function pixelBrightness(img) { /*..*/ }
+	```
 
 * **See Also:** [`serial.filterIn(..)`](#serialfilterin)
 
@@ -192,43 +192,43 @@ This is kind of like the asynchronous equivalent of JavaScript's built-in [`Arra
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the mapper function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
-    - `arr`: list to iterate over
+	- `fn`: the mapper function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<array>*
 
 * **Example:**
 
-    ```js
-    cacheImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	cacheImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function cacheImages(imageUrls) {
-        var urlsFiles = await FA.serial.flatMap(
-            async function getCacheFilename(url) {
-                var filename = await checkCache( url );
+	async function cacheImages(imageUrls) {
+		var urlsFiles = await FA.serial.flatMap(
+			async function getCacheFilename(url) {
+				var filename = await checkCache( url );
 
-                if (!filename) {
-                    filename = await cacheImage( url );
-                }
+				if (!filename) {
+					filename = await cacheImage( url );
+				}
 
-                return [url,filename];
-            }
-            imageUrls
-        );
+				return [url,filename];
+			}
+			imageUrls
+		);
 
-        console.log( `URLs / filenames: ${urlsFiles}` );
-        // example output:
-        // https://some.tld/image1.png,/tmp/3232bc2b2b3789.png,https://other.tld/image2.png,
-        // /tmp/423343aab328903.png,https://various.tld/image3.png,/tmp/673472adde3f558.png
-    }
+		console.log( `URLs / filenames: ${urlsFiles}` );
+		// example output:
+		// https://some.tld/image1.png,/tmp/3232bc2b2b3789.png,https://other.tld/image2.png,
+		// /tmp/423343aab328903.png,https://various.tld/image3.png,/tmp/673472adde3f558.png
+	}
 
-    async function checkCache(url) { /*..*/ }
-    async function cacheImage(url) { /*..*/ }
-    ```
+	async function checkCache(url) { /*..*/ }
+	async function cacheImage(url) { /*..*/ }
+	```
 
 * **See Also:** [`serial.map(..)`](#serialmap)
 
@@ -247,33 +247,33 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#forEach(..)
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the iteration function; called each time with `v` (value), `i` (index), and `arr` (list) arguments
-    - `arr`: list to iterate over
+	- `fn`: the iteration function; called each time with `v` (value), `i` (index), and `arr` (list) arguments
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<undefined>*
 
 * **Example:**
 
-    ```js
-    renderImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	renderImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function renderImages(imageUrls) {
-        // preload the images concurrently (in parallel)
-        var imgs = await FA.concurrent.map( preloadImg, imageUrls );
+	async function renderImages(imageUrls) {
+		// preload the images concurrently (in parallel)
+		var imgs = await FA.concurrent.map( preloadImg, imageUrls );
 
-        // render them serially (in order)
-        await FA.serial.forEach( renderImg, imgs );
+		// render them serially (in order)
+		await FA.serial.forEach( renderImg, imgs );
 
-        console.log( "All images preloaded and rendered." );
-    }
+		console.log( "All images preloaded and rendered." );
+	}
 
-    async function preloadImg(url) { /*..*/ }
-    async function renderImg(imgObj) { /*..*/ }
-    ```
+	async function preloadImg(url) { /*..*/ }
+	async function renderImg(imgObj) { /*..*/ }
+	```
 
 ----
 
@@ -290,47 +290,47 @@ This is the asynchronous equivalent of JavaScript's built-in [`Array#map(..)`](h
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the mapper function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
-    - `arr`: list to iterate over
+	- `fn`: the mapper function; called each time with `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new mapped item value
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<array>*
 
 * **Example:**
 
-    ```js
-    cacheImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	cacheImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function cacheImages(imageUrls) {
-        var urlsFiles = await FA.serial.map(
-            async function getCacheFilename(url) {
-                var filename = await checkCache( url );
+	async function cacheImages(imageUrls) {
+		var urlsFiles = await FA.serial.map(
+			async function getCacheFilename(url) {
+				var filename = await checkCache( url );
 
-                if (!filename) {
-                    filename = await cacheImage( url );
-                }
+				if (!filename) {
+					filename = await cacheImage( url );
+				}
 
-                return [url,filename];
-            }
-            imageUrls
-        );
+				return [url,filename];
+			}
+			imageUrls
+		);
 
-        // standard built-in array#forEach
-        urlsFiles.forEach(
-            ([url,filename]) => console.log( `${url} stored in: ${filename}` )
-        );
-        // example output:
-        // https://some.tld/image1.png stored in: /tmp/3232bc2b2b3789.png
-        // https://other.tld/image2.png stored in: /tmp/423343aab328903.png
-        // https://various.tld/image3.png stored in: /tmp/673472adde3f558.png
-    }
+		// standard built-in array#forEach
+		urlsFiles.forEach(
+			([url,filename]) => console.log( `${url} stored in: ${filename}` )
+		);
+		// example output:
+		// https://some.tld/image1.png stored in: /tmp/3232bc2b2b3789.png
+		// https://other.tld/image2.png stored in: /tmp/423343aab328903.png
+		// https://various.tld/image3.png stored in: /tmp/673472adde3f558.png
+	}
 
-    async function checkCache(url) { /*..*/ }
-    async function cacheImage(url) { /*..*/ }
-    ```
+	async function checkCache(url) { /*..*/ }
+	async function cacheImage(url) { /*..*/ }
+	```
 
 * **See Also:** [`serial.flatMap(..)`](#serialflatmap)
 
@@ -347,27 +347,27 @@ Each step of the piping-composition will be processed left-to-right, serially (a
 **Note:** As with all **fasy** methods, the functions in `fns` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fns`: the list of functions to pipe
+	- `fns`: the list of functions to pipe
 
 * **Returns:** *function* (that returns *Promise<any>*)
 
 * **Example:**
 
-    ```js
-    // define piped function
-    var prepareImg = FA.serial.pipe( [imgURL,prefetchImage,makeImgDOMElem] );
+	```js
+	// define piped function
+	var prepareImg = FA.serial.pipe( [imgURL,prefetchImage,makeImgDOMElem] );
 
-    renderImage( "image1" );
+	renderImage( "image1" );
 
-    async function renderImage(url) {
-        var imgElem = await prepareImg( url, "png" );
-        document.body.appendChild( imgElem );
-    }
+	async function renderImage(url) {
+		var imgElem = await prepareImg( url, "png" );
+		document.body.appendChild( imgElem );
+	}
 
-    function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
-    async function prefetchImage(url) { /* .. */ }
-    function makeImgDOMElem(img) { /* .. */ }
-    ```
+	function imgURL(name,ext) { return `https://some.tld/${name}.${ext}`; }
+	async function prefetchImage(url) { /* .. */ }
+	function makeImgDOMElem(img) { /* .. */ }
+	```
 
 * **See Also:** [`serial.compose(..)`](#serialcompose)
 
@@ -387,49 +387,49 @@ This is (almost) the asynchronous equivalent of JavaScript's built-in [`Array#re
 **Note:** As with all **fasy** methods, `fn(..)` can be any of: `function`, `async function`, or `function*`. If it's a `function`, and it needs to perform asynchronous actions before being considered complete, make sure a promise is returned. `async function`s automatically return promises for their completion, so no extra effort is necessary there. If `fn(..)` is a `function*` generator, its iterator will be driven according to the [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#generators--promises), meaning `yield`ed promises delay the generator until they're resolved. Moreover, if the final `yield` / `return` value is a promise, it will be waited on before allowing completion.
 
 * **Arguments:**
-    - `fn`: the reducer function; called each time with `acc` (accumulator), `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new accumulator value
-    - `initialValue`: the initial value for the accumulator
-    - `arr`: list to iterate over
+	- `fn`: the reducer function; called each time with `acc` (accumulator), `v` (value), `i` (index), and `arr` (list) arguments; should (eventually) produce a new accumulator value
+	- `initialValue`: the initial value for the accumulator
+	- `arr`: list to iterate over
 
 * **Returns:** *Promise<any>*
 
 * **Example:**
 
-    ```js
-    pickImages( [
-        "https://some.tld/image1.png",
-        "https://other.tld/image2.png",
-        "https://various.tld/image3.png"
-    ] );
+	```js
+	pickImages( [
+		"https://some.tld/image1.png",
+		"https://other.tld/image2.png",
+		"https://various.tld/image3.png"
+	] );
 
-    async function pickImages(imageUrls) {
-        var picked = await FA.serial.reduce(
-            async function checkImg(pickedSoFar,url) {
-                if (pickedSoFar.urls.length < 2 || pickedSoFar.avgBrightness < 20) {
-                    var img = await preloadImg( url );
-                    var imgBrightness = pixelBrightness( img );
-                    var newAvgBrightness =
-                        ((avgBrightness * imgCount) + imgBrightness) /
-                        (imgCount + 1);
+	async function pickImages(imageUrls) {
+		var picked = await FA.serial.reduce(
+			async function checkImg(pickedSoFar,url) {
+				if (pickedSoFar.urls.length < 2 || pickedSoFar.avgBrightness < 20) {
+					var img = await preloadImg( url );
+					var imgBrightness = pixelBrightness( img );
+					var newAvgBrightness =
+						((avgBrightness * imgCount) + imgBrightness) /
+						(imgCount + 1);
 
-                    if (newAvgBrightness < 50) {
-                        return {
-                            urls: pickedSoFar.urls.concat( url ),
-                            avgBrightness: newAvgBrightness
-                        };
-                    }
-                }
+					if (newAvgBrightness < 50) {
+						return {
+							urls: pickedSoFar.urls.concat( url ),
+							avgBrightness: newAvgBrightness
+						};
+					}
+				}
 
-                return pickedSoFar;
-            },
-            { urls: [], avgBrightness: 0 },
-            imageUrls
-        );
+				return pickedSoFar;
+			},
+			{ urls: [], avgBrightness: 0 },
+			imageUrls
+		);
 
-        // standard built-in array#forEach
-        picked.urls.forEach( url => console.log( `Picked image: ${url}` ) );
-    }
+		// standard built-in array#forEach
+		picked.urls.forEach( url => console.log( `Picked image: ${url}` ) );
+	}
 
-    async function preloadImg(url) { /*..*/ }
-    function pixelBrightness(img) { /*..*/ }
-    ```
+	async function preloadImg(url) { /*..*/ }
+	function pixelBrightness(img) { /*..*/ }
+	```

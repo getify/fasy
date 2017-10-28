@@ -46,11 +46,11 @@ As with `concurrent.map(..)`, once all mappings are complete, the returned promi
 var users = [ "bzmau", "getify", "frankz" ];
 
 FA.serial.map(
-    function *getOrders(username){
-        var user = yield lookupUser( username );
-        return lookupOrders( user.id );
-    },
-    users
+	function *getOrders(username){
+		var user = yield lookupUser( username );
+		return lookupOrders( user.id );
+	},
+	users
 )
 .then( userOrders => console.log( userOrders ) );
 ```
@@ -68,8 +68,8 @@ The [sync-async pattern](https://github.com/getify/You-Dont-Know-JS/blob/master/
 
 ```js
 async function getOrders(username) {
-    var user = await lookupUser( username );
-    return lookupOrders( user.id );
+	var user = await lookupUser( username );
+	return lookupOrders( user.id );
 }
 
 getOrders( "getify" )
@@ -80,8 +80,8 @@ Alternately, you could use a `function*` generator along with a [generator-runne
 
 ```js
 run( function *getOrders(username){
-    var user = yield lookupUser( username );
-    return lookupOrders( user.id );
+	var user = yield lookupUser( username );
+	return lookupOrders( user.id );
 }, "getify" )
 .then( orders => console.log( orders ) );
 ```
@@ -92,16 +92,16 @@ The problem is, mixing FP-style iteration like `map(..)` with `async function` f
 // BROKEN CODE -- DON'T COPY!!
 
 async function getAllOrders() {
-    var users = [ "bzmau", "getify", "frankz" ];
+	var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = users.map( function getOrders(username){
-        // `await` won't work here inside this inner function
-        var user = await lookupUser( username );
-        return lookupOrders( user.id );
-    } );
+	var userOrders = users.map( function getOrders(username){
+		// `await` won't work here inside this inner function
+		var user = await lookupUser( username );
+		return lookupOrders( user.id );
+	} );
 
-    // everything is messed up now, since `map(..)` works synchronously
-    console.log( userOrders );
+	// everything is messed up now, since `map(..)` works synchronously
+	console.log( userOrders );
 }
 ```
 
@@ -111,15 +111,15 @@ If it's OK to run the `getOrders(..)` calls concurrently -- in this particular e
 
 ```js
 async function getAllOrders() {
-    var users = [ "bzmau", "getify", "frankz" ];
+	var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = await Promise.all( users.map( async function getOrders(username){
-        var user = await lookupUser( username );
-        return lookupOrders( user.id );
-    } ) );
+	var userOrders = await Promise.all( users.map( async function getOrders(username){
+		var user = await lookupUser( username );
+		return lookupOrders( user.id );
+	} ) );
 
-    // this works
-    console.log( userOrders );
+	// this works
+	console.log( userOrders );
 }
 ```
 
@@ -133,17 +133,17 @@ For example, consider this [`concurrent.map(..)`](docs/concurrent-API.md#concurr
 
 ```js
 async function getAllOrders() {
-    var users = [ "bzmau", "getify", "frankz" ];
+	var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = await FA.concurrent.map(
-        async function getOrders(username){
-            var user = await lookupUser( username );
-            return lookupOrders( user.id );
-        },
-        users
-    );
+	var userOrders = await FA.concurrent.map(
+		async function getOrders(username){
+			var user = await lookupUser( username );
+			return lookupOrders( user.id );
+		},
+		users
+	);
 
-    console.log( userOrders );
+	console.log( userOrders );
 }
 ```
 
@@ -151,17 +151,17 @@ Now let's look at the same task, but with a [`serial.map(..)`](docs/serial-API.m
 
 ```js
 async function getAllOrders() {
-    var users = [ "bzmau", "getify", "frankz" ];
+	var users = [ "bzmau", "getify", "frankz" ];
 
-    var userOrders = await FA.serial.map(
-        async function getOrders(username){
-            var user = await lookupUser( username );
-            return lookupOrders( user.id );
-        },
-        users
-    );
+	var userOrders = await FA.serial.map(
+		async function getOrders(username){
+			var user = await lookupUser( username );
+			return lookupOrders( user.id );
+		},
+		users
+	);
 
-    console.log( userOrders );
+	console.log( userOrders );
 }
 ```
 
@@ -169,15 +169,15 @@ Let's look at a `filter(..)` example:
 
 ```js
 async function getActiveUsers() {
-    var users = [ "bzmau", "getify", "frankz" ];
+	var users = [ "bzmau", "getify", "frankz" ];
 
-    return FA.concurrent.filter(
-        async function userIsActive(username){
-            var user = await lookupUser( username );
-            return user.isActive;
-        },
-        users
-    );
+	return FA.concurrent.filter(
+		async function userIsActive(username){
+			var user = await lookupUser( username );
+			return user.isActive;
+		},
+		users
+	);
 }
 ```
 
@@ -196,11 +196,11 @@ var prop = p => o => o[p];
 // ***************************
 
 async function getOrders(username) {
-    return FA.serial.reduce(
-        async (ret,fn) => fn( ret ),
-        username,
-        [ lookupUser, prop( "id" ), lookupOrders ]
-    );
+	return FA.serial.reduce(
+		async (ret,fn) => fn( ret ),
+		username,
+		[ lookupUser, prop( "id" ), lookupOrders ]
+	);
 }
 
 getOrders( "getify" )
@@ -215,11 +215,11 @@ By the way, instead of `async (ret,fn) => fn(ret)` as the reducer, you can provi
 
 ```js
 async function getOrders(username) {
-    return FA.serial.reduce(
-        function *composer(ret,fn) { return fn( ret ); },
-        username,
-        [ lookupUser, prop( "id" ), lookupOrders ]
-    );
+	return FA.serial.reduce(
+		function *composer(ret,fn) { return fn( ret ); },
+		username,
+		[ lookupUser, prop( "id" ), lookupOrders ]
+	);
 }
 
 getOrders( "getify" )
@@ -234,11 +234,11 @@ In this specific running example, there's no inner asynchronous flow control nec
 
 ```js
 async function getOrders(username) {
-    return FA.serial.reduce(
-        (ret,fn) => fn( ret ),
-        username,
-        [ lookupUser, prop( "id" ), lookupOrders ]
-    );
+	return FA.serial.reduce(
+		(ret,fn) => fn( ret ),
+		username,
+		[ lookupUser, prop( "id" ), lookupOrders ]
+	);
 }
 
 getOrders( "getify" )
@@ -263,8 +263,8 @@ Consider:
 
 ```js
 async function getFileContents(filename) {
-    var fileHandle = await fileOpen( filename );
-    return fileRead( fileHandle );
+	var fileHandle = await fileOpen( filename );
+	return fileRead( fileHandle );
 }
 ```
 
@@ -272,8 +272,8 @@ That is fine, but it can also be recognized as an async composition. We can use 
 
 ```js
 var getFileContents = FA.serial.pipe( [
-    fileOpen,
-    fileRead
+	fileOpen,
+	fileRead
 ] );
 ```
 
@@ -287,11 +287,11 @@ Consider:
 
 ```js
 async function getFileContents(filename) {
-    var exists = await fileExists( filename );
-    if (exists) {
-        var fileHandle = await fileOpen( filename );
-        return fileRead( fileHandle );
-    }
+	var exists = await fileExists( filename );
+	if (exists) {
+		var fileHandle = await fileOpen( filename );
+		return fileRead( fileHandle );
+	}
 }
 ```
 
@@ -299,16 +299,16 @@ We could instead model these operations FP-style as a `filter(..)` followed by t
 
 ```js
 async function getFileContents(filename) {
-    return FA.serial.map(
-        fileRead,
-        FA.serial.map(
-            fileOpen,
-            FA.serial.filter(
-                fileExists,
-                [ filename ]
-            )
-        )
-    );
+	return FA.serial.map(
+		fileRead,
+		FA.serial.map(
+			fileOpen,
+			FA.serial.filter(
+				fileExists,
+				[ filename ]
+			)
+		)
+	);
 }
 ```
 
@@ -320,17 +320,17 @@ While this obviously can work for any number of values in a list, we'll keep our
 
 ```js
 async function getFileContents(filename) {
-    var transducer = FA.serial.compose( [
-        FA.transducers.filter( fileExists ),
-        FA.transducers.map( fileOpen ),
-        FA.transducers.map( fileRead )
-    ] );
+	var transducer = FA.serial.compose( [
+		FA.transducers.filter( fileExists ),
+		FA.transducers.map( fileOpen ),
+		FA.transducers.map( fileRead )
+	] );
 
-    return FA.transducers.into(
-        transducer,
-        "", // empty string as initial value
-        [ filename ]
-    );
+	return FA.transducers.into(
+		transducer,
+		"", // empty string as initial value
+		[ filename ]
+	);
 }
 ```
 
@@ -355,19 +355,19 @@ However, if you download this repository via Git:
 
 2. To install the build and test dependencies, run `npm install` from the project root directory.
 
-    - **Note:** This `npm install` has the effect of running the build for you, so no further action should be needed on your part.
+	- **Note:** This `npm install` has the effect of running the build for you, so no further action should be needed on your part.
 
 4. To manually run the build utility with npm:
 
-    ```
-    npm run build
-    ```
+	```
+	npm run build
+	```
 
 5. To run the build utility directly without npm:
 
-    ```
-    node scripts/build-core.js
-    ```
+	```
+	node scripts/build-core.js
+	```
 
 ## Tests
 
@@ -379,27 +379,27 @@ A comprehensive test suite is included in this repository, as well as the npm pa
 
 3. Ensure the test dependencies are installed by running `npm install` from the project root directory.
 
-    - **Note:** Starting with npm v5, the test utility is **not** run automatically during this `npm install`. With npm v4, the test utility automatically runs at this point.
+	- **Note:** Starting with npm v5, the test utility is **not** run automatically during this `npm install`. With npm v4, the test utility automatically runs at this point.
 
 4. To run the test utility with npm:
 
-    ```
-    npm test
-    ```
+	```
+	npm test
+	```
 
-    Other npm test scripts:
+	Other npm test scripts:
 
-    * `npm run test:dist` will run the test suite against `dist/fasy.js` instead of the default of `src/fasy.src.js`.
+	* `npm run test:dist` will run the test suite against `dist/fasy.js` instead of the default of `src/fasy.src.js`.
 
-    * `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references `dist/fasy.js` for inclusion.
+	* `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references `dist/fasy.js` for inclusion.
 
-    * `npm run test:all` will run all three modes of the test suite.
+	* `npm run test:all` will run all three modes of the test suite.
 
 5. To run the test utility directly without npm:
 
-    ```
-    node scripts/node-tests.js
-    ```
+	```
+	node scripts/node-tests.js
+	```
 
 ### Test Coverage
 
