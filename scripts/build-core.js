@@ -15,7 +15,11 @@ var fs = require("fs"),
 	LIB_SRC = path.join(SRC_DIR,"fasy.src.js"),
 	LIB_DIST = path.join(DIST_DIR,"fasy.js"),
 
-	result
+	TYPES_SRC = path.join(SRC_DIR,"fasy.src.d.ts"),
+	TYPES_DIST = path.join(DIST_DIR,"fasy.d.ts"),
+
+	jsFile,
+	tsFile
 ;
 
 console.log("*** Building Core ***");
@@ -29,9 +33,9 @@ try {
 	catch (err) { }
 
 	// NOTE: since uglify doesn't yet support ES6, no minifying happening :(
-	result = fs.readFileSync(LIB_SRC,{ encoding: "utf8" });
+	jsFile = fs.readFileSync(LIB_SRC,{ encoding: "utf8" });
 
-	// result = ugly.minify(path.join(SRC_DIR,"fasy.src.js"),{
+	// jsFile = ugly.minify(path.join(SRC_DIR,"fasy.src.js"),{
 	// 	mangle: {
 	// 		keep_fnames: true
 	// 	},
@@ -60,10 +64,15 @@ try {
 	copyrightHeader = Function("version","year",`return \`${copyrightHeader}\`;`)( version, year );
 
 	// append copyright-header text
-	result = copyrightHeader + result;
+	jsFile = copyrightHeader + jsFile;
 
 	// write dist
-	fs.writeFileSync( LIB_DIST, result /* result.code + "\n" */, { encoding: "utf8" } );
+	fs.writeFileSync( LIB_DIST, jsFile /* jsFile.code + "\n" */, { encoding: "utf8" } );
+
+	// same thing for TypeScript definitions
+	tsFile = fs.readFileSync(TYPES_SRC,{ encoding: "utf8" });
+	tsFile = copyrightHeader + tsFile;
+	fs.writeFileSync( TYPES_DIST, tsFile, { encoding: "utf8" } );
 
 	console.log("Complete.");
 }
