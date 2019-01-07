@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 [![Dependencies](https://david-dm.org/getify/fasy.svg)](https://david-dm.org/getify/fasy)
-[![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy)
+[![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy?type=dev)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
 **fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as composition and transducing.
@@ -351,7 +351,7 @@ The distribution library file (`dist/fasy.js`) comes pre-built with the npm pack
 
 However, if you download this repository via Git:
 
-1. The included build utility (`scripts/build-core.js`) builds (and ~~minifies~~) `dist/fasy.js` from source. **Note:** Minification is currently disabled. **The build utility expects Node.js version 6+.**
+1. The included build utility (`scripts/build-core.js`) builds (and minifies) `dist/fasy.js` from source. **The build utility expects Node.js version 6+.**
 
 2. To install the build and test dependencies, run `npm install` from the project root directory.
 

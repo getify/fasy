@@ -2,7 +2,7 @@
 
 var fs = require("fs"),
 	path = require("path"),
-	// ugly = require("uglify-js"),
+	ugly = require("terser"),
 	packageJSON,
 	copyrightHeader,
 	version,
@@ -10,16 +10,17 @@ var fs = require("fs"),
 
 	ROOT_DIR = path.join(__dirname,".."),
 	SRC_DIR = path.join(ROOT_DIR,"src"),
+	LIB_DIR = path.join(ROOT_DIR,"lib"),
 	DIST_DIR = path.join(ROOT_DIR,"dist"),
 
-	LIB_SRC = path.join(SRC_DIR,"fasy.src.js"),
-	LIB_DIST = path.join(DIST_DIR,"fasy.js"),
+	CORE_SRC = path.join(SRC_DIR,"fasy.src.js"),
+	CORE_DIST = path.join(DIST_DIR,"fasy.js"),
 
-	result
+	result = ""
 ;
 
 console.log("*** Building Core ***");
-console.log(`Building: ${LIB_DIST}`);
+console.log(`Building: ${CORE_DIST}`);
 
 try {
 	// try to make the dist directory, if needed
@@ -28,20 +29,25 @@ try {
 	}
 	catch (err) { }
 
-	// NOTE: since uglify doesn't yet support ES6, no minifying happening :(
-	result = fs.readFileSync(LIB_SRC,{ encoding: "utf8" });
+	result += fs.readFileSync(CORE_SRC,{ encoding: "utf8" });
 
-	// result = ugly.minify(path.join(SRC_DIR,"fasy.src.js"),{
-	// 	mangle: {
-	// 		keep_fnames: true
-	// 	},
-	// 	compress: {
-	// 		keep_fnames: true
-	// 	},
-	// 	output: {
-	// 		comments: /^!/
-	// 	}
-	// });
+	result = ugly.minify(result,{
+		mangle: {
+			keep_fnames: true
+		},
+		compress: {
+			keep_fnames: true
+		},
+		output: {
+			comments: /^!/
+		}
+	});
+
+	// was compression successful?
+	if (!(result && result.code)) {
+		if (result.error) throw result.error;
+		else throw result;
+	}
 
 	// read version number from package.json
 	packageJSON = JSON.parse(
@@ -60,10 +66,10 @@ try {
 	copyrightHeader = Function("version","year",`return \`${copyrightHeader}\`;`)( version, year );
 
 	// append copyright-header text
-	result = copyrightHeader + result;
+	result = `${copyrightHeader}${result.code}`;
 
 	// write dist
-	fs.writeFileSync( LIB_DIST, result /* result.code + "\n" */, { encoding: "utf8" } );
+	fs.writeFileSync( CORE_DIST, result, { encoding: "utf8" } );
 
 	console.log("Complete.");
 }

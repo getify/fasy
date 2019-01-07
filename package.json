@@ -1,6 +1,6 @@
 {
 	"name": "fasy",
-	"version": "5.0.4",
+	"version": "5.0.5",
 	"description": "FP iterator helpers that are async/generator aware",
 	"main": "./dist/fasy.js",
 	"scripts": {
@@ -18,7 +18,8 @@
 	},
 	"devDependencies": {
 		"coveralls": "~3.0.0",
-		"qunitjs": "~2.4.1"
+		"qunitjs": "~2.4.1",
+		"terser": "~3.14.1"
 	},
 	"repository": "getify/fasy",
 	"keywords": [
