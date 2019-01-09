@@ -14,7 +14,7 @@ else {
 	global.FA = require(path.join("..","src","fasy.src.js"));
 }
 
-global.QUnit = require("qunitjs");
+global.QUnit = require("qunit");
 
 require("../tests/qunit.config.js");
 require("../tests/tests.js");
