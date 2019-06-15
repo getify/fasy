@@ -54,7 +54,7 @@ QUnit.test( "API method aliases", function test(assert){
 	assert.strictEqual( FA.concurrent.compose, FA.serial.compose, "concurrent.compose -> serial.compose" );
 } );
 
-QUnit.test( "concurrent( chunkSize )", async function test(assert){
+QUnit.test( "concurrent( batchSize )", async function test(assert){
 	async function each(v,idx) {
 		var slotIdx = idx % 3;
 		if (slots[slotIdx] === false) {
@@ -105,8 +105,8 @@ QUnit.test( "concurrent( chunkSize )", async function test(assert){
 	assert.deepEqual( rActual, rExpected, "throw on: -3" );
 	assert.deepEqual( pActual, pExpected, "throw on: ''" );
 	assert.deepEqual( qActual, qExpected, "throw on: 'abc'" );
-	assert.verifySteps( tExpected, "concurrency limits" );
-	assert.deepEqual( sActual, sExpected, "cached concurrent-limit API" );
+	assert.verifySteps( tExpected, "batch-size limits" );
+	assert.deepEqual( sActual, sExpected, "cached API" );
 } );
 
 QUnit.test( "concurrent.filterIn()", async function test(assert){
