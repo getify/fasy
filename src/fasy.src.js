@@ -5,52 +5,19 @@
 })("FA",this,function DEF(name,context){
 	"use strict";
 
-	var concurrent = {
-		async forEach(eachFn,arr = []) {
-			await Promise.all(arr.map(_runner(eachFn)));
-		},
-		async map(mapperFn,arr = []) {
-			return Promise.all(arr.map(_runner(mapperFn)));
-		},
-		async flatMap(mapperFn,arr = []) {
-			return (
-					await concurrent.map(mapperFn,arr)
-				)
-				// note: normal array#reduce
-				.reduce(function reducer(ret,v){ return ret.concat(v); },[]);
-		},
-		async filterIn(predicateFn,arr = []) {
-			predicateFn = _runner(predicateFn);
-			return (
-					await Promise.all(arr.map(async function mapper(v,idx,arr) {
-						return [v,await predicateFn(v,idx,arr)];
-					}))
-				)
-				// note: normal array#reduce
-				.reduce(function reducer(ret,[v,keep]){
-					if (keep) return [...ret,v];
-					return ret;
-				},[]);
-		},
-		async filterOut(predicateFn,arr = []) {
-			predicateFn = _runner(predicateFn);
-			return concurrent.filterIn(async function filterer(v,idx,arr){
-				return !(await predicateFn(v,idx,arr));
-			},arr);
-		},
-	};
+	var cachedConcurrentAPI = {};
 
 	var serial = {
 		async forEach(eachFn,arr = []) {
 			eachFn = _runner(eachFn);
-			for (let [idx,v] of arr.entries()) {
+			for (let [idx,v,] of arr.entries()) {
 				await eachFn(v,idx,arr);
 			}
 		},
 		async map(mapperFn,arr = []) {
 			mapperFn = _runner(mapperFn);
 			var ret = [];
-			for (let [idx,v] of arr.entries()) {
+			for (let [idx,v,] of arr.entries()) {
 				ret.push(await mapperFn(v,idx,arr));
 			}
 			return ret;
@@ -66,7 +33,7 @@
 		async filterIn(predicateFn,arr = []) {
 			predicateFn = _runner(predicateFn);
 			var ret = [];
-			for (let [idx,v] of arr.entries()) {
+			for (let [idx,v,] of arr.entries()) {
 				if (await predicateFn(v,idx,arr)) {
 					ret.push(v);
 				}
@@ -82,7 +49,7 @@
 		async reduce(reducerFn,initial,arr = []) {
 			reducerFn = _runner(reducerFn);
 			var ret = initial;
-			for (let [idx,v] of arr.entries()) {
+			for (let [idx,v,] of arr.entries()) {
 				ret = await reducerFn(ret,v,idx,arr);
 			}
 			return ret;
@@ -90,7 +57,7 @@
 		async reduceRight(reducerFn,initial,arr = []) {
 			reducerFn = _runner(reducerFn);
 			var ret = initial;
-			for (let [idx,v] of [...arr.entries()].reverse()) {
+			for (let [idx,v,] of [...arr.entries(),].reverse()) {
 				ret = await reducerFn(ret,v,idx,arr);
 			}
 			return ret;
@@ -98,7 +65,7 @@
 		pipe(fns = []) {
 			// at a minimum, ensure we have the identity function in the pipe
 			if (fns.length == 0) {
-				fns = [v => v];
+				fns = [v => v,];
 			}
 			return function piped(...args){
 				return serial.reduce(
@@ -120,7 +87,7 @@
 		compose(fns = []) {
 			// at a minimum, ensure we have the identity function in the composition
 			if (fns.length == 0) {
-				fns = [v => v];
+				fns = [v => v,];
 			}
 			return function composed(...args){
 				return serial.reduceRight(
@@ -138,7 +105,7 @@
 						fns
 					);
 			};
-		}
+		},
 	};
 
 	var transducers = {
@@ -163,9 +130,9 @@
 		},
 		async into(transducer,initialValue,arr = []) {
 			var combinationFn =
-				typeof initialValue == "string" ? transducers.string :
-				typeof initialValue == "number" ? transducers.number :
-				typeof initialValue == "boolean" ? transducers.booleanAnd :
+				(typeof initialValue == "string") ? transducers.string :
+				(typeof initialValue == "number") ? transducers.number :
+				(typeof initialValue == "boolean") ? transducers.booleanAnd :
 				Array.isArray( initialValue ) ? transducers.array :
 				transducers.default;
 
@@ -176,21 +143,20 @@
 		booleanAnd(acc,v) { return acc && v; },
 		booleanOr(acc,v) { return acc || v; },
 		array(acc,v) { acc.push(v); return acc; },
-		default(acc,v) { return acc; }
+		default(acc,v) { return acc; },
 	};
 
+	// define base concurrent API
+	Object.assign(defineConcurrentAPI,defineConcurrentAPI(Number.MAX_SAFE_INTEGER));
+
+	// define alias
+	serial.filter = serial.filterIn;
+
 	var publicAPI = {
-		concurrent,
+		concurrent: defineConcurrentAPI,
 		serial,
 		transducers,
 	};
-
-	// method convenience aliases
-	_setMethodAlias("filterIn","filter");
-	concurrent.reduce = serial.reduce;
-	concurrent.reduceRight = serial.reduceRight;
-	concurrent.pipe = serial.pipe;
-	concurrent.compose = serial.compose;
 
 	return publicAPI;
 
@@ -198,9 +164,99 @@
 	// ***************************************
 	// Private
 
-	function _setMethodAlias(origName,aliasName) {
-		publicAPI.concurrent[aliasName] = publicAPI.concurrent[origName];
-		publicAPI.serial[aliasName] = publicAPI.serial[origName];
+	function defineConcurrentAPI(batchSize = 5) {
+		batchSize = Number(batchSize);
+		if (!(batchSize >= 1)) {
+			throw new Error("Batch limit size must be 1 or higher.");
+		}
+
+		if (!(batchSize in cachedConcurrentAPI)) {
+			let map = concurrentMap(batchSize);
+			let filterIn = concurrentFilterIn(map);
+
+			cachedConcurrentAPI[batchSize] = {
+				forEach: concurrentForEach(map),
+				map,
+				flatMap: concurrentFlatMap(map),
+				filter: filterIn,
+				filterIn,
+				filterOut: concurrentFilterOut(filterIn),
+				reduce: serial.reduce,
+				reduceRight: serial.reduceRight,
+				pipe: serial.pipe,
+				compose: serial.compose,
+			};
+		}
+
+		return cachedConcurrentAPI[batchSize];
+	}
+
+	function concurrentMap(batchSize) {
+		return async function map(mapperFn,arr = []){
+			// return Promise.all(arr.map(_runner(mapperFn)));
+			return runChunks(batchSize,arr,_runner(mapperFn));
+		};
+	}
+
+	function concurrentForEach(map) {
+		return async function forEach(eachFn,arr = []){
+			// await Promise.all(arr.map(_runner(eachFn)));
+			await map(eachFn,arr);
+		};
+	}
+
+	function concurrentFlatMap(map) {
+		return async function flatMap(mapperFn,arr = []){
+			return (
+					await map(mapperFn,arr)
+				)
+				// note: normal array#reduce
+				.reduce(function reducer(ret,v){ return ret.concat(v); },[]);
+		};
+	}
+
+	function concurrentFilterIn(map) {
+		return async function filterIn(predicateFn,arr = []){
+			predicateFn = _runner(predicateFn);
+			return (
+					await map(async function mapper(v,idx,arr) {
+						return [v,await predicateFn(v,idx,arr),];
+					},arr)
+				)
+				// note: normal array#reduce
+				.reduce(function reducer(ret,[v,keep,]){
+					if (keep) return [...ret,v,];
+					return ret;
+				},[]);
+		};
+	}
+
+	function concurrentFilterOut(filterIn) {
+		return async function filterOut(predicateFn,arr = []){
+			predicateFn = _runner(predicateFn);
+			return filterIn(async function filterer(v,idx,arr){
+				return !(await predicateFn(v,idx,arr));
+			},arr);
+		};
+	}
+
+	async function runChunks(batchSize,arr,fn) {
+		var results = [];
+		var arrIterator = arr.entries();
+
+		while (results.length < arr.length) {
+			let batchProcessed = 0;
+			for (let [idx,v,] of arrIterator) {
+				results.push(fn(v,idx,arr));
+				batchProcessed++;
+				if (batchProcessed >= batchSize) {
+					break;
+				}
+			}
+			await Promise.all(results.slice(-batchSize));
+		}
+
+		return Promise.all(results);
 	}
 
 	function _runner(fn) {
@@ -244,7 +300,7 @@
 					});
 			}
 			else return ret;
-		}
+		};
 	}
 
 });

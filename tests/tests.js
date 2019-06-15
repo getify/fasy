@@ -1,9 +1,10 @@
 "use strict";
 
 QUnit.test( "concurrent: API methods", function test(assert){
-	assert.expect( 6 );
+	assert.expect( 7 );
 
 	assert.ok( _hasProp( FA, "concurrent" ), "FA.concurrent" ),
+	assert.ok( _isFunction( FA.concurrent ), "FA.concurrent()" ),
 	assert.ok( _isFunction( FA.concurrent.filterIn ), "filterIn()" );
 	assert.ok( _isFunction( FA.concurrent.filterOut ), "filterOut()" );
 	assert.ok( _isFunction( FA.concurrent.forEach ), "forEach()" );
@@ -51,6 +52,61 @@ QUnit.test( "API method aliases", function test(assert){
 	assert.strictEqual( FA.concurrent.reduceRight, FA.serial.reduceRight, "concurrent.reduceRight -> serial.reduceRight" );
 	assert.strictEqual( FA.concurrent.pipe, FA.serial.pipe, "concurrent.pipe -> serial.pipe" );
 	assert.strictEqual( FA.concurrent.compose, FA.serial.compose, "concurrent.compose -> serial.compose" );
+} );
+
+QUnit.test( "concurrent( chunkSize )", async function test(assert){
+	async function each(v,idx) {
+		var slotIdx = idx % 3;
+		if (slots[slotIdx] === false) {
+			slots[slotIdx] = true;
+		}
+		else {
+			assert.step(`${idx}:${v} -- concurrency limit exceeded`);
+			return;
+		}
+
+		await _delay(10);
+		assert.step(`${idx}:${v}`);
+
+		slots[slotIdx] = false;
+	}
+
+	var slots = [false,false,false,];
+
+	var rExpected = "passed 1";
+	var pExpected = "passed 2";
+	var qExpected = "passed 3";
+	var tExpected = [
+		"0:1",
+		"1:2",
+		"2:3",
+		"3:4",
+		"4:5",
+		"5:6",
+		"6:7",
+	];
+	var sExpected = FA.concurrent();
+
+	var rActual;
+	try { rActual = FA.concurrent( -3 ) || "failed 1"; }
+	catch (err) { rActual = "passed 1"; }
+	var pActual;
+	try { pActual = FA.concurrent( "" ) || "failed 2"; }
+	catch (err) { pActual = "passed 2"; }
+	var qActual;
+	try { qActual = FA.concurrent( "abc" ) || "failed 3"; }
+	catch (err) { qActual = "passed 3"; }
+
+	// var tActual;
+	await FA.concurrent(3).forEach(each,[1,2,3,4,5,6,7,]);
+	var sActual = FA.concurrent(5);
+
+	assert.expect( 12 ); // note: 5 assertions + 7 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "throw on: -3" );
+	assert.deepEqual( pActual, pExpected, "throw on: ''" );
+	assert.deepEqual( qActual, qExpected, "throw on: 'abc'" );
+	assert.verifySteps( tExpected, "concurrency limits" );
+	assert.deepEqual( sActual, sExpected, "cached concurrent-limit API" );
 } );
 
 QUnit.test( "concurrent.filterIn()", async function test(assert){

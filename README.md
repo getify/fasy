@@ -6,9 +6,11 @@
 [![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy?type=dev)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as composition and transducing.
+**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as function composition and transducing.
 
 What's different from other FP libraries is that its methods are capable of operating asynchronously, via `async function` functions and/or `function*` generators. **fasy** supports both concurrent and serial asynchrony.
+
+For concurrent asynchrony, **fasy** also supports limiting the batch size to avoid overloading resources.
 
 ## Environment Support
 
@@ -129,6 +131,8 @@ Unfortunately, aside from being more verbose, this "fix" is fairly limited. It r
 
 With **fasy**, you can do either concurrent or serial iterations of asynchronous operations.
 
+### Concurrent Asynchrony
+
 For example, consider this [`concurrent.map(..)`](docs/concurrent-API.md#concurrentmap) operation:
 
 ```js
@@ -182,6 +186,22 @@ async function getActiveUsers() {
 ```
 
 The equivalent of this would be much more verbose/awkward than just a simple `Promise.all(..)` "fix" as described earlier. And of course, you can also use [`serial.filter(..)`](docs/serial-API.md#serialfilter) to process the operations serially if necessary.
+
+#### Limiting Concurrency
+
+To limit the concurrency (aka, parallelism) of your operations, you can limit the batch size.
+
+For example:
+
+```js
+async function getAllURLs(urls) {
+    var responses = await FA.concurrent(5).map(fetch,urls);
+
+    // .. render responses
+}
+```
+
+In this example, the `(5)` part tells the concurrent methods to limit to only executing five `fetch(..)` calls at the same time, and only moves onto the next batch of calls after the previous batch finishes.
 
 ### Serial Asynchrony
 
