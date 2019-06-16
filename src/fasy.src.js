@@ -8,44 +8,6 @@
 	var cachedConcurrentAPI = {};
 
 	var serial = {
-		async forEach(eachFn,arr = []) {
-			eachFn = _runner(eachFn);
-			for (let [idx,v,] of arr.entries()) {
-				await eachFn(v,idx,arr);
-			}
-		},
-		async map(mapperFn,arr = []) {
-			mapperFn = _runner(mapperFn);
-			var ret = [];
-			for (let [idx,v,] of arr.entries()) {
-				ret.push(await mapperFn(v,idx,arr));
-			}
-			return ret;
-		},
-		async flatMap(mapperFn,arr = []) {
-			mapperFn = _runner(mapperFn);
-			var ret = [];
-			await serial.forEach(async function eacher(v,idx,arr){
-				ret = ret.concat(await mapperFn(v,idx,arr));
-			},arr);
-			return ret;
-		},
-		async filterIn(predicateFn,arr = []) {
-			predicateFn = _runner(predicateFn);
-			var ret = [];
-			for (let [idx,v,] of arr.entries()) {
-				if (await predicateFn(v,idx,arr)) {
-					ret.push(v);
-				}
-			}
-			return ret;
-		},
-		async filterOut(predicateFn,arr = []) {
-			predicateFn = _runner(predicateFn);
-			return serial.filterIn(async function filterer(v,idx,arr){
-				return !(await predicateFn(v,idx,arr));
-			},arr);
-		},
 		async reduce(reducerFn,initial,arr = []) {
 			reducerFn = _runner(reducerFn);
 			var ret = initial;
@@ -69,19 +31,19 @@
 			}
 			return function piped(...args){
 				return serial.reduce(
-						function reducer(ret,fn){
-							// special handling only the first iteration, to pass
-							// along all the `args`
-							if (ret === args) {
-								return fn( ...ret );
-							}
-							// otherwise, in the general case, only pass along
-							// single return value from previous iteration's call
-							return fn( ret );
-						},
-						args,
-						fns
-					);
+					function reducer(ret,fn){
+						// special handling only the first iteration, to pass
+						// along all the `args`
+						if (ret === args) {
+							return fn( ...ret );
+						}
+						// otherwise, in the general case, only pass along
+						// single return value from previous iteration's call
+						return fn( ret );
+					},
+					args,
+					fns
+				);
 			};
 		},
 		compose(fns = []) {
@@ -91,19 +53,19 @@
 			}
 			return function composed(...args){
 				return serial.reduceRight(
-						function reducer(ret,fn){
-							// special handling only the first iteration, to pass
-							// along all the `args`
-							if (ret === args) {
-								return fn( ...ret );
-							}
-							// otherwise, in the general case, only pass along
-							// single return value from previous iteration's call
-							return fn( ret );
-						},
-						args,
-						fns
-					);
+					function reducer(ret,fn){
+						// special handling only the first iteration, to pass
+						// along all the `args`
+						if (ret === args) {
+							return fn( ...ret );
+						}
+						// otherwise, in the general case, only pass along
+						// single return value from previous iteration's call
+						return fn( ret );
+					},
+					args,
+					fns
+				);
 			};
 		},
 	};
@@ -149,7 +111,8 @@
 	// define base concurrent API
 	Object.assign(defineConcurrentAPI,defineConcurrentAPI(Number.MAX_SAFE_INTEGER));
 
-	// define alias
+	// complete serial API definition
+	Object.assign(serial,defineConcurrentAPI(1));
 	serial.filter = serial.filterIn;
 
 	var publicAPI = {
@@ -193,14 +156,28 @@
 
 	function concurrentMap(batchSize) {
 		return async function map(mapperFn,arr = []){
-			// return Promise.all(arr.map(_runner(mapperFn)));
-			return runChunks(batchSize,arr,_runner(mapperFn));
+			var results = [];
+			var arrIterator = arr.entries();
+			mapperFn = _runner(mapperFn);
+
+			while (results.length < arr.length) {
+				let batchProcessed = 0;
+				for (let [idx,v,] of arrIterator) {
+					results.push(mapperFn(v,idx,arr));
+					batchProcessed++;
+					if (batchProcessed >= batchSize) {
+						break;
+					}
+				}
+				await Promise.all(results.slice(-batchSize));
+			}
+
+			return Promise.all(results);
 		};
 	}
 
 	function concurrentForEach(map) {
 		return async function forEach(eachFn,arr = []){
-			// await Promise.all(arr.map(_runner(eachFn)));
 			await map(eachFn,arr);
 		};
 	}
@@ -238,25 +215,6 @@
 				return !(await predicateFn(v,idx,arr));
 			},arr);
 		};
-	}
-
-	async function runChunks(batchSize,arr,fn) {
-		var results = [];
-		var arrIterator = arr.entries();
-
-		while (results.length < arr.length) {
-			let batchProcessed = 0;
-			for (let [idx,v,] of arrIterator) {
-				results.push(fn(v,idx,arr));
-				batchProcessed++;
-				if (batchProcessed >= batchSize) {
-					break;
-				}
-			}
-			await Promise.all(results.slice(-batchSize));
-		}
-
-		return Promise.all(results);
 	}
 
 	function _runner(fn) {
