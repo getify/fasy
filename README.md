@@ -189,9 +189,11 @@ The equivalent of this would be much more verbose/awkward than just a simple `Pr
 
 #### Limiting Concurrency
 
-To limit the concurrency (aka, parallelism) of your operations, you can limit the batch size.
+To limit the concurrency (aka, parallelism) of your operations, there are two modes to select from: *continuous pooling* (default) and *batch*.
 
-For example:
+**Note:** Such limitations on concurrency are often useful when the operations involve finite system resources, like OS file handles or network connection ports, and as such you want to avoid exhausting those resources and creating errors or over-burdening the system.
+
+To illustrate, *continuous pooling* mode:
 
 ```js
 async function getAllURLs(urls) {
@@ -201,7 +203,37 @@ async function getAllURLs(urls) {
 }
 ```
 
-In this example, the `(5)` part tells the concurrent methods to limit to only executing five `fetch(..)` calls at the same time, and only moves onto the next batch of calls after the previous batch finishes.
+In this example, the `(5)` part of `FA.concurrent(5)` limits the concurrency to only (up to) five active `fetch(..)` calls at any given moment. As soon as one finishes, if there are any more calls waiting, the next one is activated. This argument must be greater than zero.
+
+The `concurrent(5)` call is actually a shorthand for `concurrent(5,5)`, which includes a second argument: minimum active threshold. In other words, the way *continuous pooling* mode works is, the first five `fetch(..)` calls are activated, and when the first one finishes, the active count is now down to `4`, which is below that specified `5` threshold, so the next one (if any are waiting) is activated.
+
+In contrast to *continuous pooling* mode, *batch* mode is activated by explicitly specifying a number for this second argument that is lower than the first argument (but still greater than zero).
+
+For example, `concurrent(5,1)` runs a batch of five concurrent `fetch(..)` calls, but doesn't start the next batch of calls until the active count falls below `1` (aka, the whole batch finishes):
+
+```js
+async function getAllURLs(urls) {
+    var responses = await FA.concurrent(5,1).map(fetch,urls);
+
+    // .. render responses
+}
+```
+
+And `concurrent(5,3)` would run a batch of five active calls, then refill the active batch set (to five) once the active count gets below `3`.
+
+With these two limit arguments, you have complete control to fine tune how much concurrent activity is appropriate.
+
+You can safely call `concurrent(..)` multiple times with the same arguments -- the resulting concurrency-limited API is internally cached -- or with any different arguments, as necessary. You can also store the concurrency-limited API object and re-use it, if you prefer:
+
+```js
+FA.concurrent(5).map(..);
+FA.concurrent(5).filter(..);
+FA.concurrent(12).forEach(..);
+
+var FAc5 = FA.concurrent(5);
+FAc5.map(..);
+FAc5.filter(..);
+```
 
 ### Serial Asynchrony
 

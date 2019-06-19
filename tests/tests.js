@@ -54,18 +54,74 @@ QUnit.test( "API method aliases", function test(assert){
 	assert.strictEqual( FA.concurrent.compose, FA.serial.compose, "concurrent.compose -> serial.compose" );
 } );
 
-QUnit.test( "concurrent( batchSize )", async function test(assert){
+QUnit.test( "concurrent: continuous pooling mode", async function test(assert){
+	async function each(v,idx) {
+		assert.step(`${idx}:${v} - start`);
+		await _delay(30);
+		assert.step(`${idx}:${v} - end`);
+	}
+
+	var rExpected = "passed 1";
+	var pExpected = "passed 2";
+	var qExpected = "passed 3";
+	var tExpected = [
+		"0:1 - start",
+		"1:2 - start",
+		"2:3 - start",
+		"0:1 - end",
+		"3:4 - start",
+		"1:2 - end",
+		"4:5 - start",
+		"2:3 - end",
+		"5:6 - start",
+		"3:4 - end",
+		"6:7 - start",
+		"4:5 - end",
+		"5:6 - end",
+		"6:7 - end",
+	];
+	var sExpected = FA.concurrent(4);
+
+	var rActual;
+	try { rActual = FA.concurrent( 5, -3 ) || "failed 1"; }
+	catch (err) { rActual = "passed 1"; }
+	var pActual;
+	try { pActual = FA.concurrent( 5, "" ) || "failed 2"; }
+	catch (err) { pActual = "passed 2"; }
+	var qActual;
+	try { qActual = FA.concurrent( 5, "abc" ) || "failed 3"; }
+	catch (err) { qActual = "passed 3"; }
+
+	// var tActual;
+	await FA.concurrent(3).forEach(each,[1,2,3,4,5,6,7,]);
+	var sActual = FA.concurrent(4,4);
+
+	assert.expect( 19 ); // note: 5 assertions + 14 `step(..)` calls
+	assert.deepEqual( rActual, rExpected, "throw on: (5,-3)" );
+	assert.deepEqual( pActual, pExpected, "throw on: (5,'')" );
+	assert.deepEqual( qActual, qExpected, "throw on: (5,'abc')" );
+	assert.verifySteps( tExpected, "continuous pooling" );
+	assert.deepEqual( sActual, sExpected, "cached API" );
+} );
+
+QUnit.test( "concurrent: batch mode", async function test(assert){
 	async function each(v,idx) {
 		var slotIdx = idx % 3;
+		if (slotIdx == 0) {
+			if (slots.includes(true)) {
+				assert.step(`${idx}:${v} -- mixed batch`);
+				return;
+			}
+		}
 		if (slots[slotIdx] === false) {
 			slots[slotIdx] = true;
 		}
 		else {
-			assert.step(`${idx}:${v} -- concurrency limit exceeded`);
+			assert.step(`${idx}:${v} -- batch limit exceeded`);
 			return;
 		}
 
-		await _delay(10);
+		await _delay(30);
 		assert.step(`${idx}:${v}`);
 
 		slots[slotIdx] = false;
@@ -98,13 +154,13 @@ QUnit.test( "concurrent( batchSize )", async function test(assert){
 	catch (err) { qActual = "passed 3"; }
 
 	// var tActual;
-	await FA.concurrent(3).forEach(each,[1,2,3,4,5,6,7,]);
+	await FA.concurrent(3,1).forEach(each,[1,2,3,4,5,6,7,]);
 	var sActual = FA.concurrent(5);
 
 	assert.expect( 12 ); // note: 5 assertions + 7 `step(..)` calls
-	assert.deepEqual( rActual, rExpected, "throw on: -3" );
-	assert.deepEqual( pActual, pExpected, "throw on: ''" );
-	assert.deepEqual( qActual, qExpected, "throw on: 'abc'" );
+	assert.deepEqual( rActual, rExpected, "throw on: (-3)" );
+	assert.deepEqual( pActual, pExpected, "throw on: ('')" );
+	assert.deepEqual( qActual, qExpected, "throw on: ('abc')" );
 	assert.verifySteps( tExpected, "batch-size limits" );
 	assert.deepEqual( sActual, sExpected, "cached API" );
 } );

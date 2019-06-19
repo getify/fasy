@@ -6,6 +6,7 @@
 	"use strict";
 
 	var cachedConcurrentAPI = {};
+	var never = new Promise(function c(){});
 
 	var serial = {
 		async reduce(reducerFn,initial,arr = []) {
@@ -127,17 +128,25 @@
 	// ***************************************
 	// Private
 
-	function defineConcurrentAPI(batchSize = 5) {
+	function defineConcurrentAPI(batchSize = 5,minActive = batchSize) {
 		batchSize = Number(batchSize);
+		minActive = Number(minActive);
 		if (!(batchSize >= 1)) {
-			throw new Error("Batch limit size must be 1 or higher.");
+			throw new Error("Batch size limit must be at least 1.");
 		}
+		if (!(
+			minActive >= 1 &&
+			minActive <= batchSize
+		)) {
+			throw new Error(`Minimum active threshold must be between 1 and ${batchSize}.`);
+		}
+		var cacheKey = `${batchSize}:${minActive}`;
 
-		if (!(batchSize in cachedConcurrentAPI)) {
-			let map = concurrentMap(batchSize);
+		if (!(cacheKey in cachedConcurrentAPI)) {
+			let map = concurrentMap(batchSize,minActive);
 			let filterIn = concurrentFilterIn(map);
 
-			cachedConcurrentAPI[batchSize] = {
+			cachedConcurrentAPI[cacheKey] = {
 				forEach: concurrentForEach(map),
 				map,
 				flatMap: concurrentFlatMap(map),
@@ -151,28 +160,40 @@
 			};
 		}
 
-		return cachedConcurrentAPI[batchSize];
+		return cachedConcurrentAPI[cacheKey];
 	}
 
-	function concurrentMap(batchSize) {
+	function concurrentMap(batchSize,minActive) {
 		return async function map(mapperFn,arr = []){
-			var results = [];
-			var arrIterator = arr.entries();
 			mapperFn = _runner(mapperFn);
 
-			while (results.length < arr.length) {
-				let batchProcessed = 0;
-				for (let [idx,v,] of arrIterator) {
-					results.push(mapperFn(v,idx,arr));
-					batchProcessed++;
-					if (batchProcessed >= batchSize) {
-						break;
+			var arrIterator = arr.entries();
+			var curActive = 0;
+			var results = [];
+			var pending = [];
+
+			while (true) {
+				if (curActive < minActive) {
+					let res = arrIterator.next();
+					if (!res.done) {
+						let [idx,v,] = res.value;
+						curActive++;
+						pending[idx] = results[idx] =
+							mapperFn(v,idx,arr)
+							.then(function mapped(v){
+								curActive--;
+								pending[idx] = never;
+								return v;
+							});
+					}
+					else {
+						return Promise.all(results);
 					}
 				}
-				await Promise.all(results.slice(-batchSize));
+				else {
+					await Promise.race(pending);
+				}
 			}
-
-			return Promise.all(results);
 		};
 	}
 
