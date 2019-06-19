@@ -57,7 +57,7 @@ QUnit.test( "API method aliases", function test(assert){
 QUnit.test( "concurrent: continuous pooling mode", async function test(assert){
 	async function each(v,idx) {
 		assert.step(`${idx}:${v} - start`);
-		await _delay(50);
+		await _delay((idx + 1) * 20);
 		assert.step(`${idx}:${v} - end`);
 	}
 
@@ -121,7 +121,7 @@ QUnit.test( "concurrent: batch mode", async function test(assert){
 			return;
 		}
 
-		await _delay(50);
+		await _delay((idx + 1) * 20);
 		assert.step(`${idx}:${v}`);
 
 		slots[slotIdx] = false;
