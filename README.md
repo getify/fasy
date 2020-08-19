@@ -42,7 +42,7 @@ FA.serial.map( getOrders, users )
 
 As with `concurrent.map(..)`, once all mappings are complete, the returned promise is fulfilled with the final result of the mapping.
 
-**fasy** handles `function*` generators via its own [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch4.md#promise-aware-generator-runner), similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
+**fasy** handles `function*` generators via its own [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/ch4.md#promise-aware-generator-runner), similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
 
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
