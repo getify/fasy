@@ -1,8 +1,8 @@
 {
 	"name": "fasy",
-	"version": "7.0.1",
+	"version": "8.0.0",
 	"description": "FP iterator helpers that are async/generator aware",
-	"main": "./dist/fasy.js",
+	"main": "./src/index.js",
 	"scripts": {
 		"test": "node scripts/node-tests.js",
 		"test:dist": "TEST_DIST=true npm test",
@@ -17,9 +17,27 @@
 		"publish": "npm run coverage:report"
 	},
 	"devDependencies": {
-		"coveralls": "~3.0.0",
-		"qunit": "~2.9.1",
-		"terser": "~4.0.0"
+		"coveralls": "~3.1.0",
+		"moduloze": "~0.5.0",
+		"qunit": "~2.12.0",
+		"terser": "~5.4.0"
+	},
+	"mz-dependencies": {
+		"index.js": "FA",
+		"serial.js": "FA_Serial",
+		"concurrent.js": "FA_Concurrent",
+		"transducers.js": "FA_Transducers",
+		"internals.js": "FA_Internals"
+	},
+	"exports": {
+		".": "./src/index.js",
+		"./serial": "./src/serial.js",
+		"./concurrent": "./src/concurrent.js",
+		"./transducers": "./src/transducers.js",
+		"./esm": "./dist/esm/index.mjs",
+		"./esm/serial": "./dist/esm/serial.mjs",
+		"./esm/concurrent": "./dist/esm/concurrent.mjs",
+		"./esm/transducers": "./dist/esm/transducers.mjs"
 	},
 	"repository": "getify/fasy",
 	"keywords": [

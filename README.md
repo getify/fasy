@@ -388,6 +388,44 @@ async function getFileContents(filename) {
 
 **Note:** For simplicity, we used the [`transducers.into(..)`](docs/transducers-API.md#transducersinto) convenience method, but the same task could also have used the more general [`transducers.transduce(..)`](docs/transducers-API.md#transducerstransduce) method.
 
+## npm Package
+
+To install this package from `npm`:
+
+```
+npm install fasy
+```
+
+And to require it in a node script:
+
+```js
+var FA = require("fasy");
+```
+
+You can also require any of the three sub-namespaces of this library directly:
+
+```js
+// like this:
+var concurrent = require("fasy/concurrent");
+
+// or like this:
+var { serial } = require("fasy");
+```
+
+As of version 8.0.0, the package (and its sub-namespaces) are also available as ES Modules, and can be imported as so:
+
+```js
+import FA from "fasy/esm";
+
+// or:
+
+import concurrent from "fasy/esm/concurrent";
+
+// or:
+
+import { serial } from "fasy/esm";
+```
+
 ## API Documentation
 
 * See [Concurrent API](docs/concurrent-API.md) for documentation on the methods in the `FA.concurrent.*` namespace.
