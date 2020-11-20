@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
-[![Dependencies](https://david-dm.org/getify/fasy.svg)](https://david-dm.org/getify/fasy)
-[![devDependencies](https://david-dm.org/getify/fasy/dev-status.svg)](https://david-dm.org/getify/fasy?type=dev)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
 **fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as function composition and transducing.
@@ -437,23 +435,21 @@ import { serial } from "fasy/esm";
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 
-The distribution library file (`dist/fasy.js`) comes pre-built with the npm package distribution, so you shouldn't need to rebuild it under normal circumstances.
+The distribution library files (`dist/*`) come pre-built with the npm package distribution, so you shouldn't need to rebuild them under normal circumstances.
 
 However, if you download this repository via Git:
 
-1. The included build utility (`scripts/build-core.js`) builds (and minifies) `dist/fasy.js` from source. **The build utility expects Node.js version 6+.**
+1. The included build utility (`scripts/build-core.js`) builds (and minifies) `dist/*` files (both UMD and ESM formats) from source.
 
 2. To install the build and test dependencies, run `npm install` from the project root directory.
 
-    - **Note:** This `npm install` has the effect of running the build for you, so no further action should be needed on your part.
-
-4. To manually run the build utility with npm:
+3. To manually run the build utility with npm:
 
     ```
     npm run build
     ```
 
-5. To run the build utility directly without npm:
+4. To run the build utility directly without npm:
 
     ```
     node scripts/build-core.js
@@ -461,17 +457,13 @@ However, if you download this repository via Git:
 
 ## Tests
 
-A comprehensive test suite is included in this repository, as well as the npm package distribution. The default test behavior runs the test suite using `src/fasy.src.js`.
+A test suite is included in this repository, as well as the npm package distribution. The default test behavior runs the test suite using the files in `src/`.
 
-1. You can run the tests in a browser by opening up `tests/index.html` (**requires ES6+ browser environment**).
+1. The tests are run with QUnit.
 
-2. The included Node.js test utility (`scripts/node-tests.js`) runs the test suite. **This test utility expects Node.js version 6+.**
+2. You can run the tests in a browser by opening up `tests/index.html`.
 
-3. Ensure the test dependencies are installed by running `npm install` from the project root directory.
-
-    - **Note:** Starting with npm v5, the test utility is **not** run automatically during this `npm install`. With npm v4, the test utility automatically runs at this point.
-
-4. To run the test utility with npm:
+3. To run the test utility with npm:
 
     ```
     npm test
@@ -479,13 +471,13 @@ A comprehensive test suite is included in this repository, as well as the npm pa
 
     Other npm test scripts:
 
-    * `npm run test:dist` will run the test suite against `dist/fasy.js` instead of the default of `src/fasy.src.js`.
+    * `npm run test:dist` will run the test suite against `dist/umd/bundle.js` instead of the default of `src/*` files.
 
-    * `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references `dist/fasy.js` for inclusion.
+    * `npm run test:package` will run the test suite as if the package had just been installed via npm. This ensures `package.json`:`main` properly references the correct file for inclusion.
 
     * `npm run test:all` will run all three modes of the test suite.
 
-5. To run the test utility directly without npm:
+4. To run the test utility directly without npm:
 
     ```
     node scripts/node-tests.js
@@ -495,7 +487,7 @@ A comprehensive test suite is included in this repository, as well as the npm pa
 
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-If you have [Istanbul](https://github.com/gotwarlost/istanbul) already installed on your system (requires v1.0+), you can use it to check the test coverage:
+If you have [NYC (Istanbul)](https://github.com/istanbuljs/nyc) already installed on your system (requires v14.1+), you can use it to check the test coverage:
 
 ```
 npm run coverage
@@ -503,14 +495,8 @@ npm run coverage
 
 Then open up `coverage/lcov-report/index.html` in a browser to view the report.
 
-To run Istanbul directly without npm:
-
-```
-istanbul cover scripts/node-tests.js
-```
-
 **Note:** The npm script `coverage:report` is only intended for use by project maintainers. It sends coverage reports to [Coveralls](https://coveralls.io/).
 
 ## License
 
-All code and documentation are (c) 2019 Kyle Simpson and released under the [MIT License](http://getify.mit-license.org/). A copy of the MIT License [is also included](LICENSE.txt).
+All code and documentation are (c) 2019-2020 Kyle Simpson and released under the [MIT License](http://getify.mit-license.org/). A copy of the MIT License [is also included](LICENSE.txt).
