@@ -1,6 +1,6 @@
 {
 	"name": "fasy",
-	"version": "8.0.2",
+	"version": "8.0.3",
 	"description": "FP iterator helpers that are async/generator aware",
 	"main": "./src/index.js",
 	"scripts": {
