@@ -5,8 +5,6 @@ var fs = require("fs"),
 	util = require("util"),
 	{ execFile } = require("child_process"),
 
-	ugly = require("terser"),
-
 	execFileAsync = util.promisify(execFile),
 	packageJSON,
 	copyrightHeader,
@@ -31,12 +29,6 @@ console.log("*** Building Fasy ***");
 		}
 		catch (err) { }
 
-		// run moduloze CLI on the src/ tree
-		await execFileAsync(
-			path.join(ROOT_DIR,"node_modules",".bin","mz"),
-			[ "-rube" ]
-		);
-
 		// read package.json
 		packageJSON = JSON.parse(
 			fs.readFileSync(
@@ -53,39 +45,14 @@ console.log("*** Building Fasy ***");
 		).replace(/`/g,"");
 		copyrightHeader = Function("version","year",`return \`${copyrightHeader}\`;`)( version, year );
 
-		// read dist/* files
-		var umdFiles = (
-			fs.readdirSync(path.join(DIST_DIR,"umd"))
-		).map(file => path.join(DIST_DIR,"umd",file));
-		var esmFiles = (
-			fs.readdirSync(path.join(DIST_DIR,"esm"))
-		).map(file => path.join(DIST_DIR,"esm",file));
-		var files = [ ...umdFiles, ...esmFiles ];
-
-		// minify dist/* files
-		for (let file of files) {
-			let contents = fs.readFileSync(file,{ encoding: "utf8" });
-
-			let result = await ugly.minify(contents,{
-				mangle: {
-					keep_fnames: true,
-				},
-				compress: {
-					keep_fnames: true,
-				},
-				output: {
-					comments: /^!/,
-				},
-			});
-			if (!(result && result.code)) {
-				if (result.error) throw result.error;
-				else throw result;
-			}
-			// append copyright-header text
-			result = `${copyrightHeader}${result.code}`;
-			// write dist/ file
-			fs.writeFileSync(file,result,{ encoding: "utf8", });
-		}
+		// run moduloze CLI on the src/ tree
+		await execFileAsync(
+			path.join(ROOT_DIR,"node_modules",".bin","mz"),
+			[
+				`--prepend=${ copyrightHeader }`,
+				"-ruben",
+			]
+		);
 
 		console.log("Complete.");
 	}
