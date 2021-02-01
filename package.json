@@ -1,6 +1,6 @@
 {
 	"name": "fasy",
-	"version": "8.0.4",
+	"version": "9.0.0",
 	"description": "FP iterator helpers that are async/generator aware",
 	"main": "./src/index.js",
 	"scripts": {
@@ -18,23 +18,35 @@
 	},
 	"devDependencies": {
 		"coveralls": "~3.1.0",
-		"moduloze": "~0.6.2",
+		"moduloze": "~0.7.0",
 		"nyc": "~15.1.0",
-		"qunit": "~2.12.0",
-		"terser": "~5.4.0"
+		"qunit": "~2.14.0",
+		"terser": "~5.5.1"
 	},
 	"mz-dependencies": {
 		"index.js": "FA",
-		"serial.js": "FA_Serial",
-		"concurrent.js": "FA_Concurrent",
-		"transducers.js": "FA_Transducers",
-		"internals.js": "FA_Internals"
+		"serial.js": "FASerial",
+		"concurrent.js": "FAConcurrent",
+		"transducers.js": "FATransducers",
+		"internals.js": "FAInternals"
 	},
 	"exports": {
-		".": "./src/index.js",
-		"./serial": "./src/serial.js",
-		"./concurrent": "./src/concurrent.js",
-		"./transducers": "./src/transducers.js",
+		".": {
+			"import": "./dist/esm/index.mjs",
+			"default": "./src/index.js"
+		},
+		"./serial": {
+			"import": "./dist/esm/serial.mjs",
+			"default": "./src/serial.js"
+		},
+		"./concurrent": {
+			"import": "./dist/esm/concurrent.mjs",
+			"default": "./src/concurrent.js"
+		},
+		"./transducers": {
+			"import": "./dist/esm/transducers.mjs",
+			"default": "./src/transducers.js"
+		},
 		"./esm": "./dist/esm/index.mjs",
 		"./esm/serial": "./dist/esm/serial.mjs",
 		"./esm/concurrent": "./dist/esm/concurrent.mjs",

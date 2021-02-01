@@ -1,14 +1,14 @@
-# fasy
+# Fasy
 
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
 
-**fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as function composition and transducing.
+**Fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as function composition and transducing.
 
-What's different from other FP libraries is that its methods are capable of operating asynchronously, via `async function` functions and/or `function*` generators. **fasy** supports both concurrent and serial asynchrony.
+What's different from other FP libraries is that its methods are capable of operating asynchronously, via `async function` functions and/or `function*` generators. **Fasy** supports both concurrent and serial asynchrony.
 
-For concurrent asynchrony, **fasy** also supports limiting the batch size to avoid overloading resources.
+For concurrent asynchrony, **Fasy** also supports limiting the batch size to avoid overloading resources.
 
 ## Environment Support
 
@@ -40,7 +40,7 @@ FA.serial.map( getOrders, users )
 
 As with `concurrent.map(..)`, once all mappings are complete, the returned promise is fulfilled with the final result of the mapping.
 
-**fasy** handles `function*` generators via its own [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/ch4.md#promise-aware-generator-runner), similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
+**Fasy** handles `function*` generators via its own [generator-runner](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/ch4.md#promise-aware-generator-runner), similar to utilities provided by various async libraries (e.g., [`asynquence#runner(..)`](https://github.com/getify/asynquence/tree/master/contrib#runner-plugin), [`Q.spawn(..)`](https://github.com/kriskowal/q/wiki/API-Reference#qspawngeneratorfunction)).:
 
 ```js
 var users = [ "bzmau", "getify", "frankz" ];
@@ -127,7 +127,7 @@ Unfortunately, aside from being more verbose, this "fix" is fairly limited. It r
 
 ## Overview
 
-With **fasy**, you can do either concurrent or serial iterations of asynchronous operations.
+With **Fasy**, you can do either concurrent or serial iterations of asynchronous operations.
 
 ### Concurrent Asynchrony
 
@@ -259,7 +259,7 @@ getOrders( "getify" )
 
 **Note:** In this composition, the second call (from `prop("id")` -- a standard FP helper) is **synchronous**, while the first and third calls are **asynchronous**. That's OK, because promises automatically lift non-promise values. [More on that](#syncasync-normalization) below.
 
-The async composition being shown here is only for illustration purposes. **fasy** provides [`serial.compose(..)`](docs/serial-API.md#serialcompose) and [`serial.pipe(..)`](docs/serial-API.md#serialpipe) for performing async compositions ([see below](#async-composition)); these methods should be preferred over doing it manually yourself.
+The async composition being shown here is only for illustration purposes. **Fasy** provides [`serial.compose(..)`](docs/serial-API.md#serialcompose) and [`serial.pipe(..)`](docs/serial-API.md#serialpipe) for performing async compositions ([see below](#async-composition)); these methods should be preferred over doing it manually yourself.
 
 By the way, instead of `async (ret,fn) => fn(ret)` as the reducer, you can provide a `function*` generator and it works the same:
 
@@ -303,11 +303,11 @@ In the first step of this example's reduction, the `fn(ret)` call is effectively
 
 But what about the second step of the reduction, where `fn(ret)` is effectively `prop("id")(user)`? The return from *that* call is an immediate value (the user's ID), not a promise (future value).
 
-**fasy** uses promises internally to normalize both immediate and future values, so the iteration behavior is consistent regardless.
+**Fasy** uses promises internally to normalize both immediate and future values, so the iteration behavior is consistent regardless.
 
 ### Async Composition
 
-In addition to traditional iterations like `map(..)` and `filter(..)`, **fasy** also supports serial-async composition, which is really just a serial-async reduction under the covers.
+In addition to traditional iterations like `map(..)` and `filter(..)`, **Fasy** also supports serial-async composition, which is really just a serial-async reduction under the covers.
 
 Consider:
 
@@ -331,7 +331,7 @@ FP libraries traditionally provide synchronous composition with `pipe(..)` and `
 
 ### Async Transducing
 
-Transducing is another flavor of FP iteration; it's a combination of composition and list/data-structure reduction. Multiple `map(..)` and `filter(..)` calls can be composed by transforming them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **fasy** has serial-async reduction, you can do serial-async transducing as well!
+Transducing is another flavor of FP iteration; it's a combination of composition and list/data-structure reduction. Multiple `map(..)` and `filter(..)` calls can be composed by transforming them as reducers. Again, many FP libraries support traditional synchronous transducing, but since **Fasy** has serial-async reduction, you can do serial-async transducing as well!
 
 Consider:
 
@@ -410,19 +410,21 @@ var concurrent = require("fasy/concurrent");
 var { serial } = require("fasy");
 ```
 
-As of version 8.0.0, the package (and its sub-namespaces) are also available as ES Modules, and can be imported as so:
+As of version 9.0.0, the package (and its sub-namespaces) are also available as ES Modules, and can be imported as so:
 
 ```js
-import FA from "fasy/esm";
+import FA from "fasy";
 
 // or:
 
-import concurrent from "fasy/esm/concurrent";
+import concurrent from "fasy/concurrent";
 
 // or:
 
-import { serial } from "fasy/esm";
+import { serial } from "fasy";
 ```
+
+**Note:** Starting in version 8.x, **Fasy** was also available in ESM format, but required an ESM import specifier segment `/esm` in **Fasy** `import` paths. This has been deprecated as of version 9.0.0 (and will eventually be removed), in favor of unified import specifier paths via [Node Conditional Exports](https://nodejs.org/api/packages.html#packages_conditional_exports). For ESM `import` statements, always use the specifier style `"fasy"` or `"fasy/concurrent"`, instead of `"fasy/esm"` and `"fasy/esm/concurrent"`, respectively.
 
 ## API Documentation
 
@@ -499,4 +501,4 @@ Then open up `coverage/lcov-report/index.html` in a browser to view the report.
 
 ## License
 
-All code and documentation are (c) 2019-2020 Kyle Simpson and released under the [MIT License](http://getify.mit-license.org/). A copy of the MIT License [is also included](LICENSE.txt).
+All code and documentation are (c) 2021 Kyle Simpson and released under the [MIT License](http://getify.mit-license.org/). A copy of the MIT License [is also included](LICENSE.txt).
