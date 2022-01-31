@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
 [![Coverage Status](https://coveralls.io/repos/github/getify/fasy/badge.svg?branch=master)](https://coveralls.io/github/getify/fasy?branch=master)
+[![Modules](https://img.shields.io/badge/modules-ESM%2BUMD%2BCJS-a1356a)](https://nodejs.org/api/packages.html#dual-commonjses-module-packages)
+[![License](https://img.shields.io/badge/license-MIT-a1356a)](LICENSE.txt)
 
 **Fasy** (/ˈfāsē/) is a utility library of FP array iteration helpers (like `map(..)`, `filter(..)`, etc), as well as function composition and transducing.
 
@@ -436,6 +438,7 @@ import { serial } from "fasy";
 
 [![Build Status](https://travis-ci.org/getify/fasy.svg?branch=master)](https://travis-ci.org/getify/fasy)
 [![npm Module](https://badge.fury.io/js/fasy.svg)](https://www.npmjs.org/package/fasy)
+[![Modules](https://img.shields.io/badge/modules-ESM%2BUMD%2BCJS-a1356a)](https://nodejs.org/api/packages.html#dual-commonjses-module-packages)
 
 The distribution library files (`dist/*`) come pre-built with the npm package distribution, so you shouldn't need to rebuild them under normal circumstances.
 
@@ -500,5 +503,7 @@ Then open up `coverage/lcov-report/index.html` in a browser to view the report.
 **Note:** The npm script `coverage:report` is only intended for use by project maintainers. It sends coverage reports to [Coveralls](https://coveralls.io/).
 
 ## License
+
+[![License](https://img.shields.io/badge/license-MIT-a1356a)](LICENSE.txt)
 
 All code and documentation are (c) 2021 Kyle Simpson and released under the [MIT License](http://getify.mit-license.org/). A copy of the MIT License [is also included](LICENSE.txt).
