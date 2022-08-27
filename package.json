@@ -1,6 +1,6 @@
 {
 	"name": "fasy",
-	"version": "9.0.0",
+	"version": "9.0.1",
 	"description": "FP iterator helpers that are async/generator aware",
 	"main": "./src/index.js",
 	"scripts": {
@@ -17,11 +17,10 @@
 		"publish": "npm run coverage:report"
 	},
 	"devDependencies": {
-		"coveralls": "~3.1.0",
-		"moduloze": "~0.7.0",
+		"coveralls": "~3.1.1",
+		"moduloze": "~0.9.1",
 		"nyc": "~15.1.0",
-		"qunit": "~2.14.0",
-		"terser": "~5.5.1"
+		"qunit": "~2.19.1"
 	},
 	"mz-dependencies": {
 		"index.js": "FA",
